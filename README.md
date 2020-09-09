@@ -42,7 +42,7 @@ go get github.com/pierrec/lz4 && cd $GOPATH/src/github.com/pierrec/lz4 && git fe
 ### APIs
 **List an archive**
 
-```shell script
+```go
 filename := "test.zip"
 
 if exist := one_archiver.FileExists(filename); !exist {
@@ -78,7 +78,7 @@ fmt.Printf("Result: %+v\n", result)
 
 **Is encrypted**
 
-```shell script
+```go
 filename := "test.enc.zip"
 //filename := "test.encrypted.rar"
 
@@ -108,7 +108,7 @@ fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted,
 
 **Pack**
 
-```shell script
+```go
 import (
 	"fmt"
 	"github.com/yeka/zip"
@@ -158,7 +158,7 @@ fmt.Printf("Result: %+v\n", "Success")
 
 **Unpack**
 
-```shell script
+```go
 import (
 	"fmt"
 	"github.com/yeka/zip"
@@ -207,5 +207,5 @@ fmt.Printf("Result: %+v\n", "Success")
 
 
 ### Credits
-mholt/archiver (https://github.com/mholt/archiver)
-yeka/zip (https://github.com/yeka/zip)
+- mholt/archiver (https://github.com/mholt/archiver)
+- yeka/zip (https://github.com/yeka/zip)
