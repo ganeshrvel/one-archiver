@@ -15,20 +15,20 @@ func ListArchive() {
 		return
 	}
 
-	_metaObj := &ArchiveMeta{
+	am := &ArchiveMeta{
 		Filename:         filename,
 		Password:         "",
 		GitIgnorePattern: []string{},
 	}
 
-	_listObj := &ArchiveRead{
+	ar := &ArchiveRead{
 		ListDirectoryPath: "test-directory/",
 		Recursive:         true,
 		OrderBy:           OrderByName,
 		OrderDir:          OrderDirAsc,
 	}
 
-	result, err := GetArchiveFileList(_metaObj, _listObj)
+	result, err := GetArchiveFileList(am, ar)
 
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
@@ -37,10 +37,9 @@ func ListArchive() {
 	}
 
 	fmt.Printf("Result: %+v\n", result)
-
 }
 
-func IsArchiveEncrypted() {
+func IsEncrypted() {
 	filename := getDesktopFiles("test.enc.zip")
 	//filename := getDesktopFiles("test.enc.rar")
 
@@ -50,12 +49,12 @@ func IsArchiveEncrypted() {
 		return
 	}
 
-	_metaObj := &ArchiveMeta{
+	am := &ArchiveMeta{
 		Filename: filename,
 		Password: "1234567",
 	}
 
-	result, err := isArchiveEncrypted(_metaObj)
+	result, err := IsArchiveEncrypted(am)
 
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
@@ -63,7 +62,7 @@ func IsArchiveEncrypted() {
 		return
 	}
 
-	fmt.Printf("Result; isEncrypted: %v, isValidPassword: %v\n", result.isEncrypted, result.isValidPassword)
+	fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted, result.IsValidPassword)
 }
 
 func Pack() {
@@ -71,18 +70,18 @@ func Pack() {
 	path1 := getDesktopFiles("test")
 	path2 := getDesktopFiles("openmtp")
 
-	_metaObj := &ArchiveMeta{
+	am := &ArchiveMeta{
 		Filename:         filename,
 		GitIgnorePattern: []string{},
 		Password:         "",
 		EncryptionMethod: zip.StandardEncryption,
 	}
 
-	_packObj := &ArchivePack{
+	ap := &ArchivePack{
 		FileList: []string{path1, path2},
 	}
 
-	ph := ProgressHandler{
+	ph := &ProgressHandler{
 		onReceived: func(pInfo *ProgressInfo) {
 			fmt.Printf("received: %v\n", pInfo)
 		},
@@ -90,14 +89,14 @@ func Pack() {
 			fmt.Printf("error: %e\n", err)
 		},
 		onCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.startTime)
+			elapsed := time.Since(pInfo.StartTime)
 
 			fmt.Println("observable is closed")
 			fmt.Printf("Time taken to create the archive: %s", elapsed)
 		},
 	}
 
-	err := startPacking(_metaObj, _packObj, &ph)
+	err := StartPacking(am, ap, ph)
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
 
@@ -111,18 +110,18 @@ func Unpack() {
 	filename := getTestMocksAsset("mock_test_file1.zip")
 	tempDir := newTempMocksDir("arc_test_pack/", false)
 
-	_metaObj := &ArchiveMeta{
+	am := &ArchiveMeta{
 		Filename:         filename,
 		Password:         "",
 		GitIgnorePattern: []string{},
 	}
 
-	_unpackObj := &ArchiveUnpack{
+	au := &ArchiveUnpack{
 		FileList:    []string{},
 		Destination: tempDir,
 	}
 
-	ph := ProgressHandler{
+	ph := &ProgressHandler{
 		onReceived: func(pInfo *ProgressInfo) {
 			fmt.Printf("received: %v\n", pInfo)
 		},
@@ -130,14 +129,14 @@ func Unpack() {
 			fmt.Printf("error: %e\n", err)
 		},
 		onCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.startTime)
+			elapsed := time.Since(pInfo.StartTime)
 
 			fmt.Println("observable is closed")
 			fmt.Printf("Time taken to unpack the archive: %s", elapsed)
 		},
 	}
 
-	err := startUnpacking(_metaObj, _unpackObj, &ph)
+	err := StartUnpacking(am, au, ph)
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
 

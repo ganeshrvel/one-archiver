@@ -97,16 +97,16 @@ type extractCommonArchiveFileInfo struct {
 }
 
 type EncryptedArchiveInfo struct {
-	isEncrypted     bool
-	isValidPassword bool
+	IsEncrypted     bool
+	IsValidPassword bool
 }
 
 type ProgressInfo struct {
-	startTime          time.Time
-	totalFiles         int
-	progressCount      int
-	currentFilename    string
-	progressPercentage float32
+	StartTime          time.Time
+	TotalFiles         int
+	ProgressCount      int
+	CurrentFilename    string
+	ProgressPercentage float32
 }
 
 type ProgressHandler struct {

@@ -62,8 +62,8 @@ func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 	_password := arc.meta.Password
 
 	ai := EncryptedArchiveInfo{
-		isEncrypted:     false,
-		isValidPassword: false,
+		IsEncrypted:     false,
+		IsValidPassword: false,
 	}
 
 	reader, err := zip.OpenReader(_filename)
@@ -79,7 +79,7 @@ func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 
 	for _, file := range reader.File {
 		if file.IsEncrypted() {
-			ai.isEncrypted = true
+			ai.IsEncrypted = true
 
 			file.SetPassword(_password)
 
@@ -99,7 +99,7 @@ func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 				return ai, nil
 			}
 
-			ai.isValidPassword = true
+			ai.IsValidPassword = true
 
 			return ai, err
 		}
@@ -113,8 +113,8 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 	_password := arc.meta.Password
 
 	ai := EncryptedArchiveInfo{
-		isEncrypted:     false,
-		isValidPassword: false,
+		IsEncrypted:     false,
+		IsValidPassword: false,
 	}
 
 	arcFileObj, err := archiver.ByExtension(_filename)
@@ -139,10 +139,10 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 
 		// check if the password is correct
 		if r1 {
-			ai.isEncrypted = true
+			ai.IsEncrypted = true
 
 			r2, err := isRarArchiveEncrypted(arcValues, _filename, _password)
-			ai.isValidPassword = !r2
+			ai.IsValidPassword = !r2
 
 			if err != nil {
 				return ai, err
@@ -156,7 +156,7 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 	}
 }
 
-func isArchiveEncrypted(meta *ArchiveMeta) (EncryptedArchiveInfo, error) {
+func IsArchiveEncrypted(meta *ArchiveMeta) (EncryptedArchiveInfo, error) {
 	_meta := *meta
 
 	var utilsObj ArchiveUtils
@@ -176,8 +176,8 @@ func isArchiveEncrypted(meta *ArchiveMeta) (EncryptedArchiveInfo, error) {
 
 	default:
 		ai := EncryptedArchiveInfo{
-			isEncrypted:     false,
-			isValidPassword: false,
+			IsEncrypted:     false,
+			IsValidPassword: false,
 		}
 
 		return ai, nil

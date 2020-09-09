@@ -43,64 +43,65 @@ go get github.com/pierrec/lz4 && cd $GOPATH/src/github.com/pierrec/lz4 && git fe
 **List an archive**
 
 ```shell script
-	filename := "test.zip"
+filename := "test.zip"
 
-	if exist := fileExists(filename); !exist {
-		fmt.Printf("file does not exist: %s\n", filename)
+if exist := one_archiver.FileExists(filename); !exist {
+    fmt.Printf("file does not exist: %s\n", filename)
 
-		return
-	}
+    return
+}
 
-	_metaObj := &ArchiveMeta{
-		Filename: filename,
-		GitIgnorePattern: []string{},
-	}
+am := &one_archiver.ArchiveMeta{
+    Filename:         filename,
+    Password:         "",
+    GitIgnorePattern: []string{},
+}
 
-	_listObj := &ArchiveRead{
-		ListDirectoryPath: "test-directory/",
-		Recursive:         true,
-		OrderBy:           OrderByName,
-		OrderDir:          OrderDirAsc,
-	}
+ar := &one_archiver.ArchiveRead{
+    ListDirectoryPath: "test-directory/",
+    Recursive:         true,
+    OrderBy:           one_archiver.OrderByName,
+    OrderDir:          one_archiver.OrderDirAsc,
+}
 
-	result, err := GetArchiveFileList(_metaObj, _listObj)
+result, err := one_archiver.GetArchiveFileList(am, ar)
 
-	if err != nil {
-		fmt.Printf("An error occured: %+v\n", err)
+if err != nil {
+    fmt.Printf("Error occured: %+v\n", err)
 
-		return
-	}
+    return
+}
 
-	fmt.Printf("Result: %+v\n", result)
+fmt.Printf("Result: %+v\n", result)
 ```
 
 
 **Is encrypted**
 
 ```shell script
-	filename := "test.enc.zip"
-	//filename := "test.enc.rar"
+filename := "test.enc.zip"
+//filename := "test.encrypted.rar"
 
-	if exist := fileExists(filename); !exist {
-		fmt.Printf("file does not exist %s\n", filename)
+if exist := one_archiver.FileExists(filename); !exist {
+    fmt.Printf("file does not exist %s\n", filename)
 
-		return
-	}
+    return
+}
 
-	_metaObj := &ArchiveMeta{
-	  Filename: filename,
-      Password: "",
-    }
+am := &one_archiver.ArchiveMeta{
+    Filename: filename,
+    Password: "1234567",
+}
 
-	result, err := isArchiveEncrypted(_metaObj)
+result, err := one_archiver.IsArchiveEncrypted(am)
 
-	if err != nil {
-		fmt.Printf("Error occured: %+v\n", err)
+if err != nil {
+    fmt.Printf("Error occured: %+v\n", err)
 
-		return
-	}
+    return
+}
 
-	fmt.Printf("Result; isEncrypted: %v, isValidPassword: %v\n", result.isEncrypted, result.isValidPassword)
+fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted, result.IsValidPassword)
 ```
 
 
@@ -108,91 +109,100 @@ go get github.com/pierrec/lz4 && cd $GOPATH/src/github.com/pierrec/lz4 && git fe
 **Pack**
 
 ```shell script
-func Pack() {
-	filename := "/path/pack.zip"
-	path1 := "directory1"
-	path2 := "directory2"
+import (
+	"fmt"
+	"github.com/yeka/zip"
+	"time"
+)
 
-	_metaObj := &ArchiveMeta{
-		Filename:         filename,
-		GitIgnorePattern: []string{"git.log"},
-		Password:         "",
-		EncryptionMethod: zip.StandardEncryption,
-	}
+filename := "/path/pack.zip"
+path1 := "directory1"
+path2 := "directory2"
 
-	_packObj := &ArchivePack{
-		FileList: []string{path1, path2},
-	}
-
-	ph := ProgressHandler{
-		onReceived: func(pInfo *ProgressInfo) {
-			fmt.Printf("received: %v\n", pInfo)
-		},
-		onError: func(err error, pInfo *ProgressInfo) {
-			fmt.Printf("error: %e\n", err)
-		},
-		onCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.startTime)
-
-			fmt.Println("observable is closed")
-			fmt.Printf("Time taken to create the archive: %s", elapsed)
-		},
-	}
-
-	err := startPacking(_metaObj, _packObj, &ph)
-	if err != nil {
-		fmt.Printf("Error occured: %+v\n", err)
-
-		return
-	}
-
-	fmt.Printf("Result: %+v\n", "Success")
+am := &one_archiver.ArchiveMeta{
+    Filename:         filename,
+    GitIgnorePattern: []string{},
+    Password:         "",
+    EncryptionMethod: zip.StandardEncryption,
 }
+
+ap := &one_archiver.ArchivePack{
+    FileList: []string{path1, path2},
+}
+
+ph := &one_archiver.ProgressHandler{
+    onReceived: func(pInfo *one_archiver.ProgressInfo) {
+        fmt.Printf("received: %v\n", pInfo)
+    },
+    onError: func(err error, pInfo *one_archiver.ProgressInfo) {
+        fmt.Printf("error: %e\n", err)
+    },
+    onCompleted: func(pInfo *one_archiver.ProgressInfo) {
+        elapsed := time.Since(pInfo.StartTime)
+
+        fmt.Println("observable is closed")
+        fmt.Printf("Time taken to create the archive: %s", elapsed)
+    },
+}
+
+err := one_archiver.StartPacking(am, ap, ph)
+if err != nil {
+    fmt.Printf("Error occured: %+v\n", err)
+
+    return
+}
+
+fmt.Printf("Result: %+v\n", "Success")
 ```
 
 
 **Unpack**
 
 ```shell script
-func Unpack() {
-	filename := "/path/pack.zip"
-	destination := "arc_test_pack/"
+import (
+	"fmt"
+	"github.com/yeka/zip"
+	"time"
+)
 
-	_metaObj := &ArchiveMeta{
-		Filename:         filename,
-		Password:         "",
-		GitIgnorePattern: []string{},
-	}
+filename := "/path/pack.zip"
+destination := "arc_test_pack/"
 
-	_unpackObj := &ArchiveUnpack{
-		FileList:    []string{}, // archive specific files in the directory
-		Destination: destination,
-	}
-
-    ph := ProgressHandler{
-		onReceived: func(pInfo *ProgressInfo) {
-			fmt.Printf("received: %v\n", pInfo)
-		},
-		onError: func(err error, pInfo *ProgressInfo) {
-			fmt.Printf("error: %e\n", err)
-		},
-		onCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.startTime)
-
-			fmt.Println("observable is closed")
-			fmt.Printf("Time taken to unpack the archive: %s", elapsed)
-		},
-	}
-
-	err := startUnpacking(_metaObj, _unpackObj, &ph)
-	if err != nil {
-		fmt.Printf("Error occured: %+v\n", err)
-
-		return
-	}
-
-	fmt.Printf("Result: %+v\n", "Success")
+am := &one_archiver.ArchiveMeta{
+    Filename:         filename,
+    Password:         "",
+    GitIgnorePattern: []string{},
 }
+
+au := &one_archiver.ArchiveUnpack{
+    FileList:    []string{},
+    Destination: tempDir,
+}
+
+ph := &one_archiver.ProgressHandler{
+    onReceived: func(pInfo *ProgressInfo) {
+        fmt.Printf("received: %v\n", pInfo)
+    },
+    onError: func(err error, pInfo *one_archiver.ProgressInfo) {
+        fmt.Printf("error: %e\n", err)
+    },
+    onCompleted: func(pInfo *one_archiver.ProgressInfo) {
+        elapsed := time.Since(pInfo.StartTime)
+
+        fmt.Println("observable is closed")
+        fmt.Printf("Time taken to unpack the archive: %s", elapsed)
+    },
+}
+
+err := one_archiver.StartUnpacking(am, au, ph)
+if err != nil {
+    fmt.Printf("Error occured: %+v\n", err)
+
+    return
+}
+
+fmt.Printf("Result: %+v\n", "Success")
+
 ```
 
 

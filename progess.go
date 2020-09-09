@@ -7,11 +7,11 @@ import (
 
 func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxgo.Item) {
 	pInfo := ProgressInfo{
-		startTime:          time.Now(),
-		totalFiles:         totalFiles,
-		progressCount:      0,
-		currentFilename:    "",
-		progressPercentage: 0,
+		StartTime:          time.Now(),
+		TotalFiles:         totalFiles,
+		ProgressCount:      0,
+		CurrentFilename:    "",
+		ProgressPercentage: 0,
 	}
 
 	ch := make(chan rxgo.Item)
@@ -32,19 +32,19 @@ func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxg
 func (pInfo *ProgressInfo) progress(ch *chan rxgo.Item, totalFiles int, absolutePath string, progressCount int) {
 	progressPercentage := Percent(float32(progressCount), float32(totalFiles))
 
-	pInfo.totalFiles = totalFiles
-	pInfo.progressCount = progressCount
-	pInfo.currentFilename = absolutePath
-	pInfo.progressPercentage = progressPercentage
+	pInfo.TotalFiles = totalFiles
+	pInfo.ProgressCount = progressCount
+	pInfo.CurrentFilename = absolutePath
+	pInfo.ProgressPercentage = progressPercentage
 
 	*ch <- rxgo.Of(pInfo)
 }
 
 func (pInfo *ProgressInfo) endProgress(ch *chan rxgo.Item, totalFiles int) {
-	pInfo.totalFiles = totalFiles
-	pInfo.progressCount = totalFiles
-	pInfo.currentFilename = ""
-	pInfo.progressPercentage = 100.00
+	pInfo.TotalFiles = totalFiles
+	pInfo.ProgressCount = totalFiles
+	pInfo.CurrentFilename = ""
+	pInfo.ProgressPercentage = 100.00
 
 	*ch <- rxgo.Of(pInfo)
 

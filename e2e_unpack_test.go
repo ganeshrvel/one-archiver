@@ -88,7 +88,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 			Destination: _destination,
 		}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -109,7 +109,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{"a.txt"}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -130,7 +130,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -152,7 +152,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -174,7 +174,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -196,7 +196,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -218,7 +218,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -239,7 +239,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -262,7 +262,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -285,7 +285,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -308,7 +308,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -331,7 +331,7 @@ func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		metaObj.GitIgnorePattern = []string{"mock_dir1/3"}
 
-		err := startUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -358,7 +358,7 @@ func TestUnpacking(t *testing.T) {
 			//fmt.Printf("error: %e\n", err)
 		},
 		onCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.startTime)
+			//elapsed := time.Since(pInfo.StartTime)
 			//
 			//fmt.Println("observable is closed")
 			//fmt.Printf("Time taken to unpack the archive: %s", elapsed)

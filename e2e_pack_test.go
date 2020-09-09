@@ -38,7 +38,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 
 		_metaObj.GitIgnorePattern = []string{"b.txt"}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -55,7 +55,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -72,7 +72,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -90,7 +90,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -108,7 +108,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -126,7 +126,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -145,7 +145,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -165,7 +165,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3, path4},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -183,7 +183,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -201,7 +201,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -219,7 +219,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -237,7 +237,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -257,7 +257,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3, path4},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -277,7 +277,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3, path4},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -295,7 +295,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -313,7 +313,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -332,7 +332,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -351,7 +351,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1, path2, path3},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -367,7 +367,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -384,7 +384,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 			FileList: []string{path1},
 		}
 
-		err := startPacking(_metaObj, _packObj, ph)
+		err := StartPacking(_metaObj, _packObj, ph)
 
 		So(err, ShouldBeNil)
 
@@ -409,7 +409,7 @@ func TestPacking(t *testing.T) {
 			//fmt.Printf("error: %e\n", err)
 		},
 		onCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.startTime)
+			//elapsed := time.Since(pInfo.StartTime)
 			//
 			//fmt.Println("observable is closed")
 			//fmt.Printf("Time taken to create the archive: %s", elapsed)

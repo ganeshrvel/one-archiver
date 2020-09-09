@@ -533,47 +533,47 @@ func _testZipArchiveEncryption() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isValidPassword, ShouldBeFalse)
-		So(result.isEncrypted, ShouldBeFalse)
+		So(result.IsValidPassword, ShouldBeFalse)
+		So(result.IsEncrypted, ShouldBeFalse)
 	})
 
 	Convey("Encrypted zip | Check if encrypted", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
+		So(result.IsEncrypted, ShouldBeTrue)
 	})
 
 	Convey("Encrypted zip | wrong password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "123"}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
-		So(result.isValidPassword, ShouldBeFalse)
+		So(result.IsEncrypted, ShouldBeTrue)
+		So(result.IsValidPassword, ShouldBeFalse)
 	})
 
 	Convey("Encrypted zip | correct password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "1234567"}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
-		So(result.isValidPassword, ShouldBeTrue)
+		So(result.IsEncrypted, ShouldBeTrue)
+		So(result.IsValidPassword, ShouldBeTrue)
 	})
 }
 
@@ -582,47 +582,47 @@ func _testRarArchiveEncryption() {
 		filename := getTestMocksAsset("mock_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isValidPassword, ShouldBeFalse)
-		So(result.isEncrypted, ShouldBeFalse)
+		So(result.IsValidPassword, ShouldBeFalse)
+		So(result.IsEncrypted, ShouldBeFalse)
 	})
 
 	Convey("Encrypted rar | Check if encrypted", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
+		So(result.IsEncrypted, ShouldBeTrue)
 	})
 
 	Convey("Encrypted rar | wrong password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "123"}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
-		So(result.isValidPassword, ShouldBeFalse)
+		So(result.IsEncrypted, ShouldBeTrue)
+		So(result.IsValidPassword, ShouldBeFalse)
 	})
 
 	Convey("Encrypted rar | correct password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "1234567"}
 
-		result, err := isArchiveEncrypted(_metaObj)
+		result, err := IsArchiveEncrypted(_metaObj)
 
 		So(err, ShouldBeNil)
 
-		So(result.isEncrypted, ShouldBeTrue)
-		So(result.isValidPassword, ShouldBeTrue)
+		So(result.IsEncrypted, ShouldBeTrue)
+		So(result.IsValidPassword, ShouldBeTrue)
 	})
 }
 

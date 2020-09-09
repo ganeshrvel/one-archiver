@@ -98,7 +98,7 @@ func (arc commonArchive) doPack(ph *ProgressHandler) error {
 	return nil
 }
 
-func startPacking(meta *ArchiveMeta, pack *ArchivePack, ph *ProgressHandler) error {
+func StartPacking(meta *ArchiveMeta, pack *ArchivePack, ph *ProgressHandler) error {
 	_meta := *meta
 	_pack := *pack
 

@@ -34,7 +34,7 @@ func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
 	return startUnpackingCommonArchives(arc, arcWalker, ph)
 }
 
-func startUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler) error {
+func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler) error {
 	_meta := *meta
 	_pack := *pack
 
