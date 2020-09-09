@@ -45,26 +45,26 @@ go get github.com/pierrec/lz4 && cd $GOPATH/src/github.com/pierrec/lz4 && git fe
 ```go
 filename := "test.zip"
 
-if exist := one_archiver.FileExists(filename); !exist {
+if exist := onearchiver.FileExists(filename); !exist {
     fmt.Printf("file does not exist: %s\n", filename)
 
     return
 }
 
-am := &one_archiver.ArchiveMeta{
+am := &onearchiver.ArchiveMeta{
     Filename:         filename,
     Password:         "",
     GitIgnorePattern: []string{},
 }
 
-ar := &one_archiver.ArchiveRead{
+ar := &onearchiver.ArchiveRead{
     ListDirectoryPath: "test-directory/",
     Recursive:         true,
-    OrderBy:           one_archiver.OrderByName,
-    OrderDir:          one_archiver.OrderDirAsc,
+    OrderBy:           onearchiver.OrderByName,
+    OrderDir:          onearchiver.OrderDirAsc,
 }
 
-result, err := one_archiver.GetArchiveFileList(am, ar)
+result, err := onearchiver.GetArchiveFileList(am, ar)
 
 if err != nil {
     fmt.Printf("Error occured: %+v\n", err)
@@ -82,18 +82,18 @@ fmt.Printf("Result: %+v\n", result)
 filename := "test.enc.zip"
 //filename := "test.encrypted.rar"
 
-if exist := one_archiver.FileExists(filename); !exist {
+if exist := onearchiver.FileExists(filename); !exist {
     fmt.Printf("file does not exist %s\n", filename)
 
     return
 }
 
-am := &one_archiver.ArchiveMeta{
+am := &onearchiver.ArchiveMeta{
     Filename: filename,
     Password: "1234567",
 }
 
-result, err := one_archiver.IsArchiveEncrypted(am)
+result, err := onearchiver.IsArchiveEncrypted(am)
 
 if err != nil {
     fmt.Printf("Error occured: %+v\n", err)
@@ -119,25 +119,25 @@ filename := "/path/pack.zip"
 path1 := "directory1"
 path2 := "directory2"
 
-am := &one_archiver.ArchiveMeta{
+am := &onearchiver.ArchiveMeta{
     Filename:         filename,
     GitIgnorePattern: []string{},
     Password:         "",
     EncryptionMethod: zip.StandardEncryption,
 }
 
-ap := &one_archiver.ArchivePack{
+ap := &onearchiver.ArchivePack{
     FileList: []string{path1, path2},
 }
 
-ph := &one_archiver.ProgressHandler{
-    onReceived: func(pInfo *one_archiver.ProgressInfo) {
+ph := &onearchiver.ProgressHandler{
+    onReceived: func(pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("received: %v\n", pInfo)
     },
-    onError: func(err error, pInfo *one_archiver.ProgressInfo) {
+    onError: func(err error, pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("error: %e\n", err)
     },
-    onCompleted: func(pInfo *one_archiver.ProgressInfo) {
+    onCompleted: func(pInfo *onearchiver.ProgressInfo) {
         elapsed := time.Since(pInfo.StartTime)
 
         fmt.Println("observable is closed")
@@ -145,7 +145,7 @@ ph := &one_archiver.ProgressHandler{
     },
 }
 
-err := one_archiver.StartPacking(am, ap, ph)
+err := onearchiver.StartPacking(am, ap, ph)
 if err != nil {
     fmt.Printf("Error occured: %+v\n", err)
 
@@ -168,25 +168,25 @@ import (
 filename := "/path/pack.zip"
 destination := "arc_test_pack/"
 
-am := &one_archiver.ArchiveMeta{
+am := &onearchiver.ArchiveMeta{
     Filename:         filename,
     Password:         "",
     GitIgnorePattern: []string{},
 }
 
-au := &one_archiver.ArchiveUnpack{
+au := &onearchiver.ArchiveUnpack{
     FileList:    []string{},
     Destination: tempDir,
 }
 
-ph := &one_archiver.ProgressHandler{
+ph := &onearchiver.ProgressHandler{
     onReceived: func(pInfo *ProgressInfo) {
         fmt.Printf("received: %v\n", pInfo)
     },
-    onError: func(err error, pInfo *one_archiver.ProgressInfo) {
+    onError: func(err error, pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("error: %e\n", err)
     },
-    onCompleted: func(pInfo *one_archiver.ProgressInfo) {
+    onCompleted: func(pInfo *onearchiver.ProgressInfo) {
         elapsed := time.Since(pInfo.StartTime)
 
         fmt.Println("observable is closed")
@@ -194,7 +194,7 @@ ph := &one_archiver.ProgressHandler{
     },
 }
 
-err := one_archiver.StartUnpacking(am, au, ph)
+err := onearchiver.StartUnpacking(am, au, ph)
 if err != nil {
     fmt.Printf("Error occured: %+v\n", err)
 

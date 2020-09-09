@@ -1,4 +1,4 @@
-package one_archiver
+package onearchiver
 
 // TODO proper error handling. Return error back to the callee
 

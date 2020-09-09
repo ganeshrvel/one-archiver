@@ -1,4 +1,4 @@
-package one_archiver
+package onearchiver
 
 import (
 	rxgo "github.com/ReactiveX/RxGo"
