@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TODO symlink and hardlink
 func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string) {
 	Convey("recursive=true | Asc - it should not throw an error", func() {
 		_listObj := &ArchiveRead{

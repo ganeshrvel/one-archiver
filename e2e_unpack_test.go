@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// TODO symlink and hardlink
 func _testListingUnpackedArchive(metaObj *ArchiveMeta, unpackObj *ArchiveUnpack, archiveFilesAssertionArr []string, directoryFilesAssertionArr []string) {
 	destination := unpackObj.Destination
 

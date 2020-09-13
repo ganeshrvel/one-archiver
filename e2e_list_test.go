@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TODO symlink and hardlink
 func _testArchiveListing(_metaObj *ArchiveMeta) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {

@@ -19,6 +19,7 @@ func FileExists(filename string) bool {
 
 	return !info.IsDir()
 }
+
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 

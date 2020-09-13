@@ -7,7 +7,7 @@ import (
 )
 
 func ListArchive() {
-	filename := getDesktopFiles("test.zip")
+	filename := getTestMocksAsset("mock_test_file1.zip")
 
 	if exist := FileExists(filename); !exist {
 		fmt.Printf("file does not exist: %s\n", filename)
@@ -147,7 +147,7 @@ func Unpack() {
 }
 
 func main() {
-	//ListArchive()
+	// ListArchive()
 	//IsArchiveEncrypted()
 	//Pack()
 	//Unpack()
