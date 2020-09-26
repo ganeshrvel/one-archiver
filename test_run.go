@@ -82,13 +82,13 @@ func Pack() {
 	}
 
 	ph := &ProgressHandler{
-		onReceived: func(pInfo *ProgressInfo) {
+		OnReceived: func(pInfo *ProgressInfo) {
 			fmt.Printf("received: %v\n", pInfo)
 		},
-		onError: func(err error, pInfo *ProgressInfo) {
+		OnError: func(err error, pInfo *ProgressInfo) {
 			fmt.Printf("error: %e\n", err)
 		},
-		onCompleted: func(pInfo *ProgressInfo) {
+		OnCompleted: func(pInfo *ProgressInfo) {
 			elapsed := time.Since(pInfo.StartTime)
 
 			fmt.Println("observable is closed")
@@ -122,13 +122,13 @@ func Unpack() {
 	}
 
 	ph := &ProgressHandler{
-		onReceived: func(pInfo *ProgressInfo) {
+		OnReceived: func(pInfo *ProgressInfo) {
 			fmt.Printf("received: %v\n", pInfo)
 		},
-		onError: func(err error, pInfo *ProgressInfo) {
+		OnError: func(err error, pInfo *ProgressInfo) {
 			fmt.Printf("error: %e\n", err)
 		},
-		onCompleted: func(pInfo *ProgressInfo) {
+		OnCompleted: func(pInfo *ProgressInfo) {
 			elapsed := time.Since(pInfo.StartTime)
 
 			fmt.Println("observable is closed")
@@ -151,4 +151,9 @@ func main() {
 	//IsArchiveEncrypted()
 	//Pack()
 	//Unpack()
+
+	// TODO symlink and hardlink
+	// TODO add to archive
+	// TODO delete from archive
+	// TODO common compression and decompression
 }

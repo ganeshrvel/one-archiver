@@ -19,11 +19,11 @@ func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxg
 	observable := rxgo.FromChannel(ch)
 
 	observable.ForEach(func(v interface{}) {
-		ph.onReceived(&pInfo)
+		ph.OnReceived(&pInfo)
 	}, func(err error) {
-		ph.onError(err, &pInfo)
+		ph.OnError(err, &pInfo)
 	}, func() {
-		ph.onCompleted(&pInfo)
+		ph.OnCompleted(&pInfo)
 	})
 
 	return &pInfo, &ch

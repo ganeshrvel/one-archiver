@@ -110,7 +110,7 @@ type ProgressInfo struct {
 }
 
 type ProgressHandler struct {
-	onReceived  func(*ProgressInfo)
-	onError     func(error, *ProgressInfo)
-	onCompleted func(*ProgressInfo)
+	OnReceived  func(*ProgressInfo)
+	OnError     func(error, *ProgressInfo)
+	OnCompleted func(*ProgressInfo)
 }

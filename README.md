@@ -131,13 +131,13 @@ ap := &onearchiver.ArchivePack{
 }
 
 ph := &onearchiver.ProgressHandler{
-    onReceived: func(pInfo *onearchiver.ProgressInfo) {
+    OnReceived: func(pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("received: %v\n", pInfo)
     },
-    onError: func(err error, pInfo *onearchiver.ProgressInfo) {
+    OnError: func(err error, pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("error: %e\n", err)
     },
-    onCompleted: func(pInfo *onearchiver.ProgressInfo) {
+    OnCompleted: func(pInfo *onearchiver.ProgressInfo) {
         elapsed := time.Since(pInfo.StartTime)
 
         fmt.Println("observable is closed")
@@ -180,13 +180,13 @@ au := &onearchiver.ArchiveUnpack{
 }
 
 ph := &onearchiver.ProgressHandler{
-    onReceived: func(pInfo *ProgressInfo) {
+    OnReceived: func(pInfo *ProgressInfo) {
         fmt.Printf("received: %v\n", pInfo)
     },
-    onError: func(err error, pInfo *onearchiver.ProgressInfo) {
+    OnError: func(err error, pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("error: %e\n", err)
     },
-    onCompleted: func(pInfo *onearchiver.ProgressInfo) {
+    OnCompleted: func(pInfo *onearchiver.ProgressInfo) {
         elapsed := time.Since(pInfo.StartTime)
 
         fmt.Println("observable is closed")
