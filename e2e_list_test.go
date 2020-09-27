@@ -318,6 +318,68 @@ func _testArchiveListing(_metaObj *ArchiveMeta) {
 
 }
 
+func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
+	Convey("Incorrect Password - it should throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirAsc,
+		}
+
+		_metaObj.Password = "wrongpassword"
+
+		_, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Empty Password - it should throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirAsc,
+		}
+
+		_, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Correct Password - it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirAsc,
+		}
+
+		_metaObj.Password = "1234567"
+
+		_, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+	})
+}
+
+func _testArchiveListingInvalidPasswordCommonArchives(_metaObj *ArchiveMeta) {
+	Convey("Incorrect Password | common archives - it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirAsc,
+		}
+
+		_, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+	})
+}
+
 func _testOrderByFullPathListing() {
 	Convey("OrderByFullPath", func() {
 		Convey("Asc | 1 - it should not throw an error", func() {
@@ -726,6 +788,28 @@ func TestArchiveListing(t *testing.T) {
 
 		_testArchiveListing(_metaObj)
 	})
+
+	Convey("Wrong password | Archive Listing - ZIP", t, func() {
+		filename := getTestMocksAsset("mock_enc_test_file1.zip")
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testArchiveListingInvalidPassword(_metaObj)
+	})
+
+	Convey("Wrong password | Archive Listing - RAR", t, func() {
+		filename := getTestMocksAsset("mock_enc_test_file1.rar")
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testArchiveListingInvalidPassword(_metaObj)
+	})
+
+	Convey("Wrong password | Archive Listing - Common Archives", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.tar")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: "wrong"}
+
+		_testArchiveListingInvalidPasswordCommonArchives(_metaObj)
+	})
+
 }
 
 func TestArchiveEncryption(t *testing.T) {

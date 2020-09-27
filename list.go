@@ -100,6 +100,16 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 
 	var arcObj ArchiveReader
 
+	iae, err := IsArchiveEncrypted(meta)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if iae.IsEncrypted && !iae.IsValidPassword {
+		return nil, fmt.Errorf("invalid password")
+	}
+
 	ext := filepath.Ext(meta.Filename)
 
 	// add a trailing slash to [listDirectoryPath] if missing
