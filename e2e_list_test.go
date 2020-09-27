@@ -788,7 +788,9 @@ func TestArchiveListing(t *testing.T) {
 
 		_testArchiveListing(_metaObj)
 	})
+}
 
+func TestArchiveListingPassword(t *testing.T) {
 	Convey("Wrong password | Archive Listing - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
@@ -809,7 +811,6 @@ func TestArchiveListing(t *testing.T) {
 
 		_testArchiveListingInvalidPasswordCommonArchives(_metaObj)
 	})
-
 }
 
 func TestArchiveEncryption(t *testing.T) {

@@ -100,6 +100,8 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 
 	var arcObj ArchiveReader
 
+	// check whether the archive is encrypted
+	// if yes, check whether the password is valid
 	iae, err := IsArchiveEncrypted(meta)
 
 	if err != nil {

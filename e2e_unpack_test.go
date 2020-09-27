@@ -80,6 +80,70 @@ func _testListingUnpackedArchive(metaObj *ArchiveMeta, unpackObj *ArchiveUnpack,
 	})
 }
 
+func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+	Convey("Incorrect Password - it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		_metaObj.Password = "wrongpassword"
+
+		err := StartUnpacking(_metaObj, unpackObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Empty Password - it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Correct Password - it should not throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		_metaObj.Password = "1234567"
+
+		err := StartUnpacking(_metaObj, unpackObj, ph)
+
+		So(err, ShouldBeNil)
+	})
+}
+
+func _testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+	Convey("Incorrect Password | common archives - it should not throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		_metaObj.Password = "1234567"
+
+		err := StartUnpacking(_metaObj, unpackObj, ph)
+
+		So(err, ShouldBeNil)
+	})
+}
+
 func _testUnpacking(metaObj *ArchiveMeta, ph *ProgressHandler) {
 	Convey("Warm up test | It should not throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
@@ -444,5 +508,43 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		_testUnpacking(_metaObj, &ph)
+	})
+}
+
+func TestArchiveUnpackingPassword(t *testing.T) {
+	ph := ProgressHandler{
+		OnReceived: func(pInfo *ProgressInfo) {
+			//fmt.Printf("received: %v\n", pInfo)
+		},
+		OnError: func(err error, pInfo *ProgressInfo) {
+			//fmt.Printf("error: %e\n", err)
+		},
+		OnCompleted: func(pInfo *ProgressInfo) {
+			//elapsed := time.Since(pInfo.StartTime)
+			//
+			//fmt.Println("observable is closed")
+			//fmt.Printf("Time taken to unpack the archive: %s", elapsed)
+		},
+	}
+
+	Convey("Wrong password | Archive Unpacking - ZIP", t, func() {
+		filename := getTestMocksAsset("mock_enc_test_file1.zip")
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testArchiveUnpackingInvalidPassword(_metaObj, &ph)
+	})
+
+	Convey("Wrong password | Archive Unpacking - RAR", t, func() {
+		filename := getTestMocksAsset("mock_enc_test_file1.rar")
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testArchiveUnpackingInvalidPassword(_metaObj, &ph)
+	})
+
+	Convey("Wrong password | Archive Unpacking - Common Archives", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.tar")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: "wrong"}
+
+		_testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj, &ph)
 	})
 }

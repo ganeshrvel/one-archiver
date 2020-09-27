@@ -40,6 +40,18 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler)
 
 	var arcUnpackObj ArchiveUnpacker
 
+	// check whether the archive is encrypted
+	// if yes, check whether the password is valid
+	iae, err := IsArchiveEncrypted(meta)
+
+	if err != nil {
+		return err
+	}
+
+	if iae.IsEncrypted && !iae.IsValidPassword {
+		return fmt.Errorf("invalid password")
+	}
+
 	ext := filepath.Ext(_meta.Filename)
 
 	switch ext {
