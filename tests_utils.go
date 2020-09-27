@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func getTestMocksAsset(_filePath string) string {
@@ -70,7 +71,7 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 
 	resultPath := filepath.Join(currentDir, "tests/mocks-build", _dirPath)
 
-	if resetDir == true {
+	if resetDir {
 		err := os.RemoveAll(resultPath)
 
 		if err != nil {
@@ -95,4 +96,49 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 	}
 
 	return resultPath
+}
+
+func listUnpackedDirectory(destination string) []string {
+	var filePathList []filePathListSortInfo
+
+	err := filepath.Walk(destination, func(path string, info os.FileInfo, err error) error {
+		if destination == path {
+			return nil
+		}
+
+		var pathSplitted [2]string
+
+		if !info.IsDir() {
+			pathSplitted = [2]string{filepath.Dir(path), filepath.Base(path)}
+		} else {
+			path = fixDirSlash(true, path)
+			_dir := filepath.Dir(path)
+
+			pathSplitted = [2]string{_dir, ""}
+		}
+
+		filePathList = append(filePathList, filePathListSortInfo{
+			IsDir:         info.IsDir(),
+			FullPath:      path,
+			splittedPaths: pathSplitted,
+		})
+
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_sortPath(&filePathList, OrderDirAsc)
+
+	var itemsArr []string
+
+	for _, x := range filePathList {
+		_path := strings.Replace(x.FullPath, destination, "", -1)
+		_path = strings.TrimLeft(_path, "/")
+
+		itemsArr = append(itemsArr, _path)
+	}
+
+	return itemsArr
 }

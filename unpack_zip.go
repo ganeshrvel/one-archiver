@@ -86,6 +86,12 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 		}
 	}()
 
+	if !exists(_destination) {
+		if err := os.Mkdir(_destination, 0755); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

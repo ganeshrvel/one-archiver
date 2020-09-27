@@ -23,11 +23,7 @@ func FileExists(filename string) bool {
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return true
+	return !os.IsNotExist(err)
 }
 
 func getDesktopFiles(filename string) string {

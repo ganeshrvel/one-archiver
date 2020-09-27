@@ -118,6 +118,12 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 	pInfo.endProgress(ch, totalFiles)
 
+	if !exists(_destination) {
+		if err := os.Mkdir(_destination, 0755); err != nil {
+			return err
+		}
+	}
+
 	return err
 }
 

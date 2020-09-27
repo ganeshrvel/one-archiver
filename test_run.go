@@ -146,15 +146,15 @@ func Unpack() {
 	fmt.Printf("Result: %+v\n", "Success")
 }
 
-func main() {
-	// ListArchive()
-	//IsArchiveEncrypted()
-	//Pack()
-	//Unpack()
-
-	// TODO Cancel a task
-	// TODO symlink and hardlink
-	// TODO add to archive
-	// TODO delete from archive
-	// TODO common compression and decompression
-}
+//func main() {
+//	// ListArchive()
+//	//IsArchiveEncrypted()
+//	//Pack()
+//	//Unpack()
+//
+//	// TODO Cancel a task
+//	// TODO symlink and hardlink
+//	// TODO add to archive
+//	// TODO delete from archive
+//	// TODO common compression and decompression
+//}
