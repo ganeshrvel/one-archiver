@@ -152,6 +152,7 @@ func main() {
 	//Pack()
 	//Unpack()
 
+	// TODO Cancel a task
 	// TODO symlink and hardlink
 	// TODO add to archive
 	// TODO delete from archive

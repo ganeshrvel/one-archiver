@@ -180,7 +180,7 @@ au := &onearchiver.ArchiveUnpack{
 }
 
 ph := &onearchiver.ProgressHandler{
-    OnReceived: func(pInfo *ProgressInfo) {
+    OnReceived: func(pInfo *onearchiver.ProgressInfo) {
         fmt.Printf("received: %v\n", pInfo)
     },
     OnError: func(err error, pInfo *onearchiver.ProgressInfo) {
