@@ -8,7 +8,7 @@ import (
 )
 
 func ListArchive() {
-	filename := getTestMocksAsset("mock_test_file1.zip")
+	filename := GetDesktopFile("squash-test-assets/huge_file.zip")
 
 	if exist := FileExists(filename); !exist {
 		fmt.Printf("file does not exist: %s\n", filename)
@@ -29,7 +29,7 @@ func ListArchive() {
 		OrderDir:          OrderDirAsc,
 	}
 
-	result, err := GetArchiveFileList(am, ar)
+	_, err := GetArchiveFileList(am, ar)
 
 	if err != nil {
 		pretty.Println("Error: ", err)
@@ -37,7 +37,7 @@ func ListArchive() {
 		return
 	}
 
-	pretty.Println(result)
+	//pretty.Println(result)
 }
 
 func IsEncrypted() {

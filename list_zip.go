@@ -60,10 +60,14 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
-		allowIncludeFile := getFilteredFiles(fileInfo, _listDirectoryPath, _recursive, compiledGitIgnoreLines)
+		includeFile := getFilteredFiles(
+			fileInfo, _listDirectoryPath, _recursive,
+		)
 
-		if allowIncludeFile {
-			filteredPaths = append(filteredPaths, fileInfo)
+		if includeFile {
+			if !compiledGitIgnoreLines.MatchesPath(fileInfo.FullPath) {
+				filteredPaths = append(filteredPaths, fileInfo)
+			}
 		}
 
 		if !isListDirectoryPathExist && subpathExists(_listDirectoryPath, fileInfo.FullPath) {

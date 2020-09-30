@@ -4,7 +4,6 @@ package onearchiver
 
 import (
 	"fmt"
-	"github.com/sabhiram/go-gitignore"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -48,11 +47,7 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 	return list
 }
 
-func getFilteredFiles(fileInfo ArchiveFileInfo, listDirectoryPath string, recursive bool, compiledGitIgnoreLines *ignore.GitIgnore) (include bool) {
-	if compiledGitIgnoreLines.MatchesPath(fileInfo.FullPath) {
-		return false
-	}
-
+func getFilteredFiles(fileInfo ArchiveFileInfo, listDirectoryPath string, recursive bool) (include bool) {
 	isInPath := strings.HasPrefix(fileInfo.FullPath, listDirectoryPath)
 
 	if isInPath {
