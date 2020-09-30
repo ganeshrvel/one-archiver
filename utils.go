@@ -38,6 +38,7 @@ func GetHomeDirFile(filename string) string {
 	return filepath.Join(_home, filename)
 }
 
+// Get Parent path of a list of directories and files
 func GetParentPath(sep byte, paths ...string) string {
 	// Handle special cases.
 	switch len(paths) {
@@ -157,4 +158,16 @@ func StringFilter(x []string, f func(string) bool) []string {
 
 func subpathExists(path string, searchPath string) bool {
 	return path != "" && strings.HasPrefix(searchPath, path)
+}
+
+func GetParentDirectory(fullPath string, isDir bool) string {
+	_parentDir := filepath.Dir(fullPath)
+
+	if !isDir {
+		return fmt.Sprintf("%s/", _parentDir)
+	}
+
+	_parentDir, _ = filepath.Split(_parentDir)
+
+	return _parentDir
 }

@@ -25,6 +25,7 @@ func sortPath(list []ArchiveFileInfo, orderDir ArchiveOrderDir) []ArchiveFileInf
 			Size:          x.Size,
 			ModTime:       x.ModTime,
 			Name:          x.Name,
+			ParentPath:    x.ParentPath,
 		})
 	}
 
@@ -34,12 +35,13 @@ func sortPath(list []ArchiveFileInfo, orderDir ArchiveOrderDir) []ArchiveFileInf
 
 	for _, x := range filePathList {
 		resultList = append(resultList, ArchiveFileInfo{
-			Mode:     x.Mode,
-			Size:     x.Size,
-			IsDir:    x.IsDir,
-			ModTime:  x.ModTime,
-			Name:     x.Name,
-			FullPath: x.FullPath,
+			Mode:       x.Mode,
+			Size:       x.Size,
+			IsDir:      x.IsDir,
+			ModTime:    x.ModTime,
+			Name:       x.Name,
+			FullPath:   x.FullPath,
+			ParentPath: x.ParentPath,
 		})
 	}
 

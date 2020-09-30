@@ -45,13 +45,17 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 			file.SetPassword(_password)
 		}
 
+		fullPath := filepath.ToSlash(file.Name)
+		isDir := file.FileInfo().IsDir()
+
 		fileInfo := ArchiveFileInfo{
-			Mode:     file.FileInfo().Mode(),
-			Size:     file.FileInfo().Size(),
-			IsDir:    file.FileInfo().IsDir(),
-			ModTime:  file.FileInfo().ModTime(),
-			Name:     file.FileInfo().Name(),
-			FullPath: filepath.ToSlash(file.Name),
+			Mode:       file.FileInfo().Mode(),
+			Size:       file.FileInfo().Size(),
+			IsDir:      isDir,
+			ModTime:    file.FileInfo().ModTime(),
+			Name:       file.FileInfo().Name(),
+			FullPath:   fullPath,
+			ParentPath: GetParentDirectory(fullPath, isDir),
 		}
 
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)

@@ -316,6 +316,59 @@ func _testArchiveListing(_metaObj *ArchiveMeta) {
 
 	})
 
+	Convey("Test Parentpath | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "mock_dir1/",
+			Recursive:         true,
+			OrderBy:           OrderByFullPath,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var fullPathArr []string
+		var parentPathArr []string
+
+		for _, item := range result {
+			fullPathArr = append(fullPathArr, item.FullPath)
+			parentPathArr = append(parentPathArr, item.ParentPath)
+		}
+
+		assertionArr := []string{"mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
+		assertionParentPathArr := []string{"mock_dir1/", "mock_dir1/", "mock_dir1/1/", "mock_dir1/", "mock_dir1/2/", "mock_dir1/", "mock_dir1/3/", "mock_dir1/3/", "mock_dir1/3/2/"}
+
+		So(fullPathArr, ShouldResemble, assertionArr)
+		So(parentPathArr, ShouldResemble, assertionParentPathArr)
+	})
+
+	Convey("Test name | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "mock_dir1/",
+			Recursive:         true,
+			OrderBy:           OrderByFullPath,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var fullPathArr []string
+		var nameArr []string
+
+		for _, item := range result {
+			fullPathArr = append(fullPathArr, item.FullPath)
+			nameArr = append(nameArr, item.Name)
+		}
+
+		assertionArr := []string{"mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
+		assertionNameArr := []string{"a.txt", "1", "a.txt", "2", "b.txt", "3", "b.txt", "2", "b.txt"}
+
+		So(fullPathArr, ShouldResemble, assertionArr)
+		So(nameArr, ShouldResemble, assertionNameArr)
+	})
 }
 
 func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {

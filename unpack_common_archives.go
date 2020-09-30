@@ -32,36 +32,47 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
+			fullPath := filepath.ToSlash(fileHeader.Name)
+			isDir := file.IsDir()
+
 			fileInfo = ArchiveFileInfo{
-				Mode:     file.Mode(),
-				Size:     file.Size(),
-				IsDir:    file.IsDir(),
-				ModTime:  file.ModTime(),
-				Name:     file.Name(),
-				FullPath: filepath.ToSlash(fileHeader.Name),
+				Mode:       file.Mode(),
+				Size:       file.Size(),
+				IsDir:      isDir,
+				ModTime:    file.ModTime(),
+				Name:       file.Name(),
+				FullPath:   fullPath,
+				ParentPath: GetParentDirectory(fullPath, isDir),
 			}
 
 		case *rardecode.FileHeader:
+			isDir := file.IsDir()
+			fullPath := fixDirSlash(isDir, filepath.ToSlash(file.Name()))
+
 			fileInfo = ArchiveFileInfo{
-				Mode:     file.Mode(),
-				Size:     file.Size(),
-				IsDir:    file.IsDir(),
-				ModTime:  file.ModTime(),
-				Name:     file.Name(),
-				FullPath: filepath.ToSlash(fileHeader.Name),
+				Mode:       file.Mode(),
+				Size:       file.Size(),
+				IsDir:      isDir,
+				ModTime:    file.ModTime(),
+				Name:       filepath.Base(fullPath),
+				FullPath:   fullPath,
+				ParentPath: GetParentDirectory(fullPath, isDir),
 			}
 
 		// not currently being used
 		default:
-			fileInfo = ArchiveFileInfo{
-				Mode:     file.Mode(),
-				Size:     file.Size(),
-				IsDir:    file.IsDir(),
-				ModTime:  file.ModTime(),
-				Name:     file.Name(),
-				FullPath: filepath.ToSlash(file.FileInfo.Name()),
-			}
+			fullPath := filepath.ToSlash(file.FileInfo.Name())
+			isDir := file.IsDir()
 
+			fileInfo = ArchiveFileInfo{
+				Mode:       file.Mode(),
+				Size:       file.Size(),
+				IsDir:      isDir,
+				ModTime:    file.ModTime(),
+				Name:       file.Name(),
+				FullPath:   fullPath,
+				ParentPath: GetParentDirectory(fullPath, isDir),
+			}
 		}
 
 		if allowFileFiltering {

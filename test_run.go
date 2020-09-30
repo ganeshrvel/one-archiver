@@ -2,6 +2,7 @@ package onearchiver
 
 import (
 	"fmt"
+	"github.com/kr/pretty"
 	"github.com/yeka/zip"
 	"time"
 )
@@ -22,7 +23,7 @@ func ListArchive() {
 	}
 
 	ar := &ArchiveRead{
-		ListDirectoryPath: "test-directory/",
+		ListDirectoryPath: "",
 		Recursive:         true,
 		OrderBy:           OrderByName,
 		OrderDir:          OrderDirAsc,
@@ -31,12 +32,12 @@ func ListArchive() {
 	result, err := GetArchiveFileList(am, ar)
 
 	if err != nil {
-		fmt.Printf("Error occured: %+v\n", err)
+		pretty.Println("Error: ", err)
 
 		return
 	}
 
-	fmt.Printf("Result: %+v\n", result)
+	pretty.Println(result)
 }
 
 func IsEncrypted() {
@@ -146,15 +147,4 @@ func Unpack() {
 	fmt.Printf("Result: %+v\n", "Success")
 }
 
-//func main() {
-//	// ListArchive()
-//	//IsArchiveEncrypted()
-//	//Pack()
-//	//Unpack()
-//
-//	// TODO Cancel a task
-//	// TODO symlink and hardlink
-//	// TODO add to archive
-//	// TODO delete from archive
-//	// TODO common compression and decompression
-//}
+

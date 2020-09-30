@@ -13,6 +13,7 @@ type ArchiveFileInfo struct {
 	ModTime  time.Time
 	Name     string
 	FullPath string
+	ParentPath string
 }
 
 type ArchiveMeta struct {
@@ -46,6 +47,7 @@ type filePathListSortInfo struct {
 	ModTime       time.Time
 	Name          string
 	FullPath      string
+	ParentPath    string
 }
 
 type zipArchive struct {
