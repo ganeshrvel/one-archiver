@@ -41,8 +41,6 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				FullPath: filepath.ToSlash(fileHeader.Name),
 			}
 
-			break
-
 		case *rardecode.FileHeader:
 			fileInfo = ArchiveFileInfo{
 				Mode:     file.Mode(),
@@ -52,8 +50,6 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				Name:     file.Name(),
 				FullPath: filepath.ToSlash(fileHeader.Name),
 			}
-
-			break
 
 		// not currently being used
 		default:
@@ -66,7 +62,6 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				FullPath: filepath.ToSlash(file.FileInfo.Name()),
 			}
 
-			break
 		}
 
 		if allowFileFiltering {

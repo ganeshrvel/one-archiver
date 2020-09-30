@@ -1,6 +1,6 @@
 package onearchiver
 
-// TODO proper error handling. Return error back to the callee
+// TODO proper error handling
 
 import (
 	"fmt"
@@ -27,7 +27,6 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 
 			return list[i].Name < list[j].Name
 		})
-		break
 	case OrderByModTime:
 		sort.SliceStable(list, func(i, j int) bool {
 			if orderDir == OrderDirDesc {
@@ -36,7 +35,6 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 
 			return list[i].ModTime.Before(list[j].ModTime)
 		})
-		break
 	case OrderBySize:
 		sort.SliceStable(list, func(i, j int) bool {
 			if orderDir == OrderDirDesc {
@@ -45,20 +43,13 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 
 			return list[i].Size < list[j].Size
 		})
-		break
 	}
 
 	return list
 }
 
-func getFilteredFiles(fileInfo ArchiveFileInfo, listDirectoryPath string, recursive bool, gitIgnorePattern []string) (include bool) {
-	var ignoreList []string
-	ignoreList = append(ignoreList, GlobalPatternDenylist...)
-	ignoreList = append(ignoreList, gitIgnorePattern...)
-
-	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
-
-	if ignoreMatches.MatchesPath(fileInfo.FullPath) {
+func getFilteredFiles(fileInfo ArchiveFileInfo, listDirectoryPath string, recursive bool, compiledGitIgnoreLines *ignore.GitIgnore) (include bool) {
+	if compiledGitIgnoreLines.MatchesPath(fileInfo.FullPath) {
 		return false
 	}
 
@@ -71,7 +62,7 @@ func getFilteredFiles(fileInfo ArchiveFileInfo, listDirectoryPath string, recurs
 		}
 
 		// if recursive mode is true return all files and subdirectories under the filtered path
-		if recursive == true {
+		if recursive {
 			return true
 		}
 
@@ -123,12 +114,8 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 	case ".zip":
 		arcObj = zipArchive{meta: _meta, read: _read}
 
-		break
-
 	default:
 		arcObj = commonArchive{meta: _meta, read: _read}
-
-		break
 	}
 
 	return arcObj.list()

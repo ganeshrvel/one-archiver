@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ganeshrvel/archiver"
 	"github.com/nwaples/rardecode"
+	ignore "github.com/sabhiram/go-gitignore"
 	"path/filepath"
 )
 
@@ -39,6 +40,11 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 
 	isListDirectoryPathExist := _listDirectoryPath == ""
 
+	var ignoreList []string
+	ignoreList = append(ignoreList, GlobalPatternDenylist...)
+	ignoreList = append(ignoreList, _gitIgnorePattern...)
+	compiledGitIgnoreLines, _ := ignore.CompileIgnoreLines(ignoreList...)
+
 	err = arcWalker.Walk(_filename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo
 
@@ -53,8 +59,6 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				FullPath: filepath.ToSlash(fileHeader.Name),
 			}
 
-			break
-
 		case *rardecode.FileHeader:
 			fileInfo = ArchiveFileInfo{
 				Mode:     file.Mode(),
@@ -64,8 +68,6 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Name:     file.Name(),
 				FullPath: filepath.ToSlash(fileHeader.Name),
 			}
-
-			break
 
 		// not being used
 		default:
@@ -77,13 +79,11 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Name:     file.Name(),
 				FullPath: filepath.ToSlash(file.FileInfo.Name()),
 			}
-
-			break
 		}
 
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
-		allowIncludeFile := getFilteredFiles(fileInfo, _listDirectoryPath, _recursive, _gitIgnorePattern)
+		allowIncludeFile := getFilteredFiles(fileInfo, _listDirectoryPath, _recursive, compiledGitIgnoreLines)
 
 		if allowIncludeFile {
 			filteredPaths = append(filteredPaths, fileInfo)

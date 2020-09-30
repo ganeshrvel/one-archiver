@@ -40,8 +40,8 @@ func ListArchive() {
 }
 
 func IsEncrypted() {
-	filename := getDesktopFiles("test.enc.zip")
-	//filename := getDesktopFiles("test.enc.rar")
+	filename := GetDesktopFile("test.enc.zip")
+	//filename := GetDesktopFile("test.enc.rar")
 
 	if exist := FileExists(filename); !exist {
 		fmt.Printf("file does not exist %s\n", filename)
@@ -66,9 +66,9 @@ func IsEncrypted() {
 }
 
 func Pack() {
-	filename := getDesktopFiles("12345.pack.zip")
-	path1 := getDesktopFiles("test")
-	path2 := getDesktopFiles("openmtp")
+	filename := GetDesktopFile("12345.pack.zip")
+	path1 := GetDesktopFile("test")
+	path2 := GetDesktopFile("openmtp")
 
 	am := &ArchiveMeta{
 		Filename:         filename,

@@ -26,19 +26,19 @@ func exists(filename string) bool {
 	return !os.IsNotExist(err)
 }
 
-func getDesktopFiles(filename string) string {
+func GetDesktopFile(filename string) string {
 	_home, _ := homedir.Dir()
 
 	return filepath.Join(_home, "Desktop", filename)
 }
 
-func getHomeDirFiles(filename string) string {
+func GetHomeDirFile(filename string) string {
 	_home, _ := homedir.Dir()
 
 	return filepath.Join(_home, filename)
 }
 
-func getParentPath(sep byte, paths ...string) string {
+func GetParentPath(sep byte, paths ...string) string {
 	// Handle special cases.
 	switch len(paths) {
 	case 0:

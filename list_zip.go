@@ -1,11 +1,11 @@
 package onearchiver
 
-// TODO proper error handling. Return error back to the callee
+// TODO proper error handling
 
 import (
 	"fmt"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/yeka/zip"
-	"io/ioutil"
 	"path/filepath"
 )
 
@@ -35,24 +35,14 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 
 	isListDirectoryPathExist := _listDirectoryPath == ""
 
+	var ignoreList []string
+	ignoreList = append(ignoreList, GlobalPatternDenylist...)
+	ignoreList = append(ignoreList, _gitIgnorePattern...)
+	compiledGitIgnoreLines, _ := ignore.CompileIgnoreLines(ignoreList...)
+
 	for _, file := range reader.File {
-		if file.IsEncrypted() {
+		if _password != "" {
 			file.SetPassword(_password)
-		}
-
-		fileReader, err := file.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = ioutil.ReadAll(fileReader)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if err = fileReader.Close(); err != nil {
-			fmt.Printf("%+v\n", err)
 		}
 
 		fileInfo := ArchiveFileInfo{
@@ -66,7 +56,7 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
-		allowIncludeFile := getFilteredFiles(fileInfo, _listDirectoryPath, _recursive, _gitIgnorePattern)
+		allowIncludeFile := getFilteredFiles(fileInfo, _listDirectoryPath, _recursive, compiledGitIgnoreLines)
 
 		if allowIncludeFile {
 			filteredPaths = append(filteredPaths, fileInfo)
