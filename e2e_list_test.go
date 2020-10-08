@@ -465,6 +465,34 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool) {
 		So(fullPathArr, ShouldResemble, assertionArr)
 		So(sizeArr, ShouldResemble, assertionParentPathArr)
 	})
+
+	Convey("IsDir | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByFullPath,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var fullPathArr []string
+		var isDirArr []bool
+
+		for _, item := range result {
+			fullPathArr = append(fullPathArr, item.FullPath)
+			isDirArr = append(isDirArr, item.IsDir)
+		}
+
+		assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
+
+		assertionParentPathArr := []bool{true, false, true, false, true, false, true, false, true, false}
+
+		So(fullPathArr, ShouldResemble, assertionArr)
+		So(isDirArr, ShouldResemble, assertionParentPathArr)
+	})
 }
 
 func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
