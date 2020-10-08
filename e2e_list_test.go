@@ -397,7 +397,7 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool) {
 		So(nameArr, ShouldResemble, assertionNameArr)
 	})
 
-	Convey("Mode Extension | it should not throw an error", func() {
+	Convey("Mode | it should not throw an error", func() {
 		_listObj := &ArchiveRead{
 			ListDirectoryPath: "",
 			Recursive:         true,
@@ -430,6 +430,40 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool) {
 
 		So(fullPathArr, ShouldResemble, assertionArr)
 		So(modeArr, ShouldResemble, assertionParentPathArr)
+	})
+
+	Convey("Size | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByFullPath,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var fullPathArr []string
+		var sizeArr []int64
+
+		for _, item := range result {
+			fullPathArr = append(fullPathArr, item.FullPath)
+			sizeArr = append(sizeArr, item.Size)
+		}
+
+		var assertionParentPathArr []int64
+
+		assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
+
+		if !isMacOSArchive {
+			assertionParentPathArr = []int64{0, 9, 0, 8, 0, 6, 0, 6, 0, 6}
+		} else {
+			assertionParentPathArr = []int64{0, 9, 0, 9, 0, 6, 0, 6, 0, 6}
+		}
+
+		So(fullPathArr, ShouldResemble, assertionArr)
+		So(sizeArr, ShouldResemble, assertionParentPathArr)
 	})
 }
 
