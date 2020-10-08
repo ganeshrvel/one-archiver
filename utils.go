@@ -171,3 +171,14 @@ func GetParentDirectory(fullPath string, isDir bool) string {
 
 	return _parentDir
 }
+
+func extension(filename string) string {
+	f := strings.Split(filename, ".")
+	var extension string
+
+	if len(f) > 0 {
+		extension = strings.Join(f[1:], ".")
+	}
+
+	return extension
+}

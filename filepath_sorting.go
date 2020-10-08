@@ -26,6 +26,7 @@ func sortPath(list []ArchiveFileInfo, orderDir ArchiveOrderDir) []ArchiveFileInf
 			ModTime:       x.ModTime,
 			Name:          x.Name,
 			ParentPath:    x.ParentPath,
+			Extension:     x.Extension,
 		})
 	}
 
@@ -42,6 +43,7 @@ func sortPath(list []ArchiveFileInfo, orderDir ArchiveOrderDir) []ArchiveFileInf
 			Name:       x.Name,
 			FullPath:   x.FullPath,
 			ParentPath: x.ParentPath,
+			Extension:  x.Extension,
 		})
 	}
 

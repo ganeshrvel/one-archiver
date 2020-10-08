@@ -52,45 +52,51 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 		case *tar.Header:
 			fullPath := filepath.ToSlash(fileHeader.Name)
 			isDir := file.IsDir()
+			name := file.Name()
 
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
 				ModTime:    file.ModTime(),
-				Name:       file.Name(),
+				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath, isDir),
+				Extension:  extension(name),
 			}
 
 		case *rardecode.FileHeader:
 
 			isDir := file.IsDir()
 			fullPath := fixDirSlash(isDir, filepath.ToSlash(file.Name()))
+			name := filepath.Base(fullPath)
 
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
 				ModTime:    file.ModTime(),
-				Name:       filepath.Base(fullPath),
+				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath, isDir),
+				Extension:  extension(name),
 			}
 
 		// not being used
 		default:
 			fullPath := filepath.ToSlash(file.FileInfo.Name())
 			isDir := file.IsDir()
+			name := file.Name()
 
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
 				ModTime:    file.ModTime(),
-				Name:       file.Name(),
+				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath, isDir),
+				Extension:  extension(name),
 			}
 		}
 

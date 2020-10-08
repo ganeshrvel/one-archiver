@@ -7,13 +7,14 @@ import (
 )
 
 type ArchiveFileInfo struct {
-	Mode     os.FileMode
-	Size     int64
-	IsDir    bool
-	ModTime  time.Time
-	Name     string
-	FullPath string
+	Mode       os.FileMode
+	Size       int64
+	IsDir      bool
+	ModTime    time.Time
+	Name       string
+	FullPath   string
 	ParentPath string
+	Extension  string
 }
 
 type ArchiveMeta struct {
@@ -48,6 +49,7 @@ type filePathListSortInfo struct {
 	Name          string
 	FullPath      string
 	ParentPath    string
+	Extension     string
 }
 
 type zipArchive struct {
