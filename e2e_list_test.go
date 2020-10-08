@@ -9,7 +9,7 @@ import (
 )
 
 // TODO symlink and hardlink
-func _testArchiveListing(_metaObj *ArchiveMeta) {
+func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
 			_listObj := &ArchiveRead{
@@ -395,6 +395,41 @@ func _testArchiveListing(_metaObj *ArchiveMeta) {
 
 		So(fullPathArr, ShouldResemble, assertionArr)
 		So(nameArr, ShouldResemble, assertionNameArr)
+	})
+
+	Convey("Mode Extension | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByFullPath,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var fullPathArr []string
+		var modeArr []string
+
+		for _, item := range result {
+			fullPathArr = append(fullPathArr, item.FullPath)
+			modeArr = append(modeArr, item.Mode.String())
+		}
+
+		assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
+
+		var assertionParentPathArr []string
+
+		// macOS archived files
+		if isMacOSArchive {
+			assertionParentPathArr = []string{"drwxr-xr-x", "-rw-rw-r--", "drwxr-xr-x", "-rw-rw-r--", "drwxr-xr-x", "-rw-rw-r--", "drwxr-xr-x", "-rw-rw-r--", "drwxr-xr-x", "-rw-rw-r--"}
+		} else {
+			assertionParentPathArr = []string{"drwxr-xr-x", "-rw-r--r--", "drwxr-xr-x", "-rw-r--r--", "drwxr-xr-x", "-rw-r--r--", "drwxr-xr-x", "-rw-r--r--", "drwxr-xr-x", "-rw-r--r--"}
+		}
+
+		So(fullPathArr, ShouldResemble, assertionArr)
+		So(modeArr, ShouldResemble, assertionParentPathArr)
 	})
 }
 
@@ -782,91 +817,91 @@ func TestArchiveListing(t *testing.T) {
 		filename := getTestMocksAsset("mock_mac_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, true)
 	})
 
 	Convey("Archive Listing - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing - Encrypted ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "1234567", EncryptionMethod: zip.StandardEncryption}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing - tar.gz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.gz")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | 2 - tar.gz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.gz")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.br", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.br")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.bz2", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.bz2")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.lz4", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.lz4")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.sz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.sz")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.xz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.xz")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Tar.zst", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.zst")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Non encrypted Rar", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 
 	Convey("Archive Listing | Encrypted Rar", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "1234567"}
 
-		_testArchiveListing(_metaObj)
+		_testArchiveListing(_metaObj, false)
 	})
 }
 
