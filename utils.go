@@ -178,8 +178,23 @@ func extension(filename string) string {
 	f := strings.Split(_filename, ".")
 	var extension string
 
-	if len(f) > 0 {
-		extension = strings.Join(f[1:], ".")
+	length := len(f)
+
+	if length < 1 {
+		return extension
+	}
+
+	if length > 2 {
+		exts := f[length-2:]
+		if _, ok := allowedSecondExtensions[exts[0]]; ok {
+			return strings.Join(exts, ".")
+		}
+	}
+
+	if length > 1 {
+		exts := f[length-1:]
+
+		return exts[0]
 	}
 
 	return extension

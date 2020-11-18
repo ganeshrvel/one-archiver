@@ -10,3 +10,5 @@ var (
 const (
 	OverwriteExisting = true
 )
+
+var allowedSecondExtensions allowedSecondExtMap = map[string]string{"tar": "tar"}

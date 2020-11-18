@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+type allowedSecondExtMap map[string]string
+
 type ArchiveFileInfo struct {
 	Mode       os.FileMode
 	Size       int64

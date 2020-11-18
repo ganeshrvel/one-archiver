@@ -6,14 +6,67 @@ import (
 )
 
 func TestUtils(t *testing.T) {
-	Convey("Test extensions", t, func() {
-		filenameList := []string{"abc.txt", "xyz.gz", "123", "123.tar.gz", ".ssh", ".gitignore", "github.com/ganeshrvel/one-archiver/e2e_list_test.go", "one-archiver/e2e_list_test.go", "e2e_list_test.go/.go.psd"}
-		extList := []string{"txt", "gz", "", "tar.gz", "ssh", "gitignore", "go", "go", "go.psd"}
+	Convey("Test extension", t, func() {
+		type s struct {
+			filename, ext string
+		}
 
-		for i, f := range filenameList {
-			ext := extension(f)
+		sl := []s{
+			s{
+				filename: "",
+				ext:      "",
+			}, s{
+				filename: "abc.xyz.tar.gz",
+				ext:      "tar.gz",
+			}, s{
+				filename: "abc.xyz.tar.tar",
+				ext:      "tar.tar",
+			}, s{
+				filename: "xyz.tar.gz",
+				ext:      "tar.gz",
+			}, s{
+				filename: "tar.gz",
+				ext:      "gz",
+			}, s{
+				filename: "abc.gz",
+				ext:      "gz",
+			}, s{
+				filename: ".gz",
+				ext:      "gz",
+			}, s{
+				filename: ".tar",
+				ext:      "tar",
+			}, s{
+				filename: ".tar.gz",
+				ext:      "tar.gz",
+			}, s{
+				filename: "tar.tar.gz",
+				ext:      "tar.gz",
+			}, s{
+				filename: ".htaccess",
+				ext:      "htaccess",
+			}, s{
+				filename: "abc.txt",
+				ext:      "txt",
+			}, s{
+				filename: "abc",
+				ext:      "",
+			}, s{
+				filename: "github.com/ganeshrvel/one-archiver/e2e_list_test.go",
+				ext:      "go",
+			}, s{
+				filename: "one-archiver/e2e_list_test.go",
+				ext:      "go",
+			}, s{
+				filename: "e2e_list_test.go/.go.psd",
+				ext:      "psd",
+			},
+		}
 
-			So(extList[i], ShouldEqual, ext)
+		for _, f := range sl {
+			ext := extension(f.filename)
+
+			So(ext, ShouldEqual, f.ext)
 		}
 	})
 }
