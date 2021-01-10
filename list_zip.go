@@ -56,7 +56,7 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 			ModTime:    file.FileInfo().ModTime(),
 			Name:       name,
 			FullPath:   fullPath,
-			ParentPath: GetParentDirectory(fullPath, isDir),
+			ParentPath: GetParentDirectory(fullPath),
 			Extension:  extension(name),
 		}
 

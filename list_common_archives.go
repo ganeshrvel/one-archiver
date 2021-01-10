@@ -61,7 +61,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				ModTime:    file.ModTime(),
 				Name:       name,
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 				Extension:  extension(name),
 			}
 
@@ -78,7 +78,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				ModTime:    file.ModTime(),
 				Name:       name,
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 				Extension:  extension(name),
 			}
 
@@ -95,7 +95,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				ModTime:    file.ModTime(),
 				Name:       name,
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 				Extension:  extension(name),
 			}
 		}

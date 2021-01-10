@@ -42,7 +42,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				ModTime:    file.ModTime(),
 				Name:       file.Name(),
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 			}
 
 		case *rardecode.FileHeader:
@@ -56,7 +56,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				ModTime:    file.ModTime(),
 				Name:       filepath.Base(fullPath),
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 			}
 
 		// not currently being used
@@ -71,7 +71,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				ModTime:    file.ModTime(),
 				Name:       file.Name(),
 				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath, isDir),
+				ParentPath: GetParentDirectory(fullPath),
 			}
 		}
 

@@ -69,4 +69,72 @@ func TestUtils(t *testing.T) {
 			So(ext, ShouldEqual, f.ext)
 		}
 	})
+
+	Convey("Test parent directory", t, func() {
+		type s struct {
+			filename, parentPath string
+		}
+
+		sl := []s{
+			s{
+
+				filename:   "",
+				parentPath: "",
+			}, s{
+
+				filename:   "/",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/1234",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/1234/",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/1234//",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/1234/abc/",
+				parentPath: "/1234/",
+			}, s{
+
+				filename:   "/1234/abc",
+				parentPath: "/1234/",
+			}, s{
+
+				filename:   "Hey.zip",
+				parentPath: "",
+			}, s{
+
+				filename:   "/Hey.zip",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/Hey.zip/",
+				parentPath: "/",
+			}, s{
+
+				filename:   "/Hey.zip/1234",
+				parentPath: "/Hey.zip/",
+			}, s{
+
+				filename:   "/Hey.zip/123/",
+				parentPath: "/Hey.zip/",
+			}, s{
+
+				filename:   "/Hey.zip/123//",
+				parentPath: "/Hey.zip/",
+			},
+		}
+
+		for _, f := range sl {
+			p := GetParentDirectory(f.filename)
+
+			So(p, ShouldEqual, f.parentPath)
+		}
+	})
 }

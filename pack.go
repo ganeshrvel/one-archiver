@@ -13,7 +13,7 @@ import (
 func (arc zipArchive) doPack(ph *ProgressHandler) error {
 	_fileList := arc.pack.FileList
 
-	commonParentPath := GetParentPath(os.PathSeparator, _fileList...)
+	commonParentPath := GetCommonParentPath(os.PathSeparator, _fileList...)
 
 	if indexExists(&_fileList, 0) && commonParentPath == _fileList[0] {
 		commonParentPathSplitted := strings.Split(_fileList[0], PathSep)
@@ -44,7 +44,7 @@ func (arc commonArchive) doPack(ph *ProgressHandler) error {
 		return err
 	}
 
-	commonParentPath := GetParentPath(os.PathSeparator, _fileList...)
+	commonParentPath := GetCommonParentPath(os.PathSeparator, _fileList...)
 
 	if indexExists(&_fileList, 0) && commonParentPath == _fileList[0] {
 		commonParentPathSplitted := strings.Split(_fileList[0], PathSep)
