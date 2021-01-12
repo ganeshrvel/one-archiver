@@ -16,7 +16,7 @@ package onearchiver
 //	ignoreList = append(ignoreList, _gitIgnorePattern...)
 //	ignoreListLength := len(ignoreList)
 //
-//	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
+//	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 //
 //	if !indexExists(_fileList, 0) {
 //		return nil

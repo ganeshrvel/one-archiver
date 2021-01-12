@@ -43,7 +43,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 	ignoreList = append(ignoreList, _gitIgnorePattern...)
-	compiledGitIgnoreLines, _ := ignore.CompileIgnoreLines(ignoreList...)
+	compiledGitIgnoreLines := ignore.CompileIgnoreLines(ignoreList...)
 
 	err = arcWalker.Walk(_filename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo

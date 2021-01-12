@@ -23,7 +23,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 	ignoreList = append(ignoreList, _gitIgnorePattern...)
 
-	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
+	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 
 	commonArchiveFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 

@@ -144,7 +144,7 @@ func processFilesForPacking(zipFilePathListMap *map[string]createArchiveFileInfo
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 	ignoreList = append(ignoreList, *gitIgnorePattern...)
 
-	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
+	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 
 	for _, item := range _fileList {
 		err := filepath.Walk(item, func(absFilepath string, fileInfo os.FileInfo, err error) error {

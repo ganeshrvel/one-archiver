@@ -38,7 +38,7 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 	ignoreList = append(ignoreList, _gitIgnorePattern...)
-	compiledGitIgnoreLines, _ := ignore.CompileIgnoreLines(ignoreList...)
+	compiledGitIgnoreLines := ignore.CompileIgnoreLines(ignoreList...)
 
 	for _, file := range reader.File {
 		if _password != "" {

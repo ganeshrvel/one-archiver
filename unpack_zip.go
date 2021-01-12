@@ -27,7 +27,7 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 	ignoreList = append(ignoreList, _gitIgnorePattern...)
 
-	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
+	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 
 	zipFilePathListMap := make(map[string]extractZipFileInfo)
 
