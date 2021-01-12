@@ -1017,6 +1017,33 @@ func TestArchiveListingPassword(t *testing.T) {
 		_testArchiveListingInvalidPasswordCommonArchives(_metaObj)
 	})
 }
+//
+//func TestWindowsArchiveListing(t *testing.T) {
+//
+//	//todo not working
+//	Convey("Windows Archive Listing - zip", t, func() {
+//		filename := getTestMocksAsset("windows_mocks/mock_dir1.zip")
+//		_metaObj := &ArchiveMeta{Filename: filename}
+//
+//		_testArchiveListing(_metaObj, false)
+//	})
+//
+//	Convey("Windows Archive Listing - encrypted zip", t, func() {
+//		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc.zip")
+//		_metaObj := &ArchiveMeta{Filename: filename, Password: "1234567"}
+//
+//		_testArchiveListing(_metaObj, false)
+//	})
+//
+//	Convey("Windows Archive Listing - rar", t, func() {
+//		filename := getTestMocksAsset("windows_mocks/mock_dir1.rar")
+//		_metaObj := &ArchiveMeta{Filename: filename}
+//
+//		_testArchiveListing(_metaObj, false)
+//	})
+//
+//	//todo not working
+//}
 
 func TestArchiveEncryption(t *testing.T) {
 	//if testing.Short() {

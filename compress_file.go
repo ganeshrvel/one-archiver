@@ -14,6 +14,7 @@ package onearchiver
 //	var ignoreList []string
 //	ignoreList = append(ignoreList, GlobalPatternDenylist...)
 //	ignoreList = append(ignoreList, _gitIgnorePattern...)
+//	ignoreListLength := len(ignoreList)
 //
 //	ignoreMatches, _ := ignore.CompileIgnoreLines(ignoreList...)
 //
@@ -23,8 +24,10 @@ package onearchiver
 //
 //	_source := _fileList[0]
 //
+//	if ignoreListLength > 0 {
 //	if ignoreMatches.MatchesPath(_source) {
 //		return nil
+//	}
 //	}
 //
 //	in, err := os.Open(_source)
