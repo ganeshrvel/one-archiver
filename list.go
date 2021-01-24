@@ -89,11 +89,18 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 	// check whether the archive is encrypted
 	// if yes, check whether the password is valid
 	iae, err := IsArchiveEncrypted(meta)
-
 	if err != nil {
 		return nil, err
 	}
 
+	/// if archive is encrypted and if password field is empty
+	/// then return 'password is required' error
+	if iae.IsEncrypted && len(_meta.Password) < 1 {
+		return nil, fmt.Errorf("password is required")
+	}
+
+	/// if archive is encrypted and if the password is invalid
+	/// then return 'invalid password' error
 	if iae.IsEncrypted && !iae.IsValidPassword {
 		return nil, fmt.Errorf("invalid password")
 	}

@@ -551,7 +551,7 @@ func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 		_, err := GetArchiveFileList(_metaObj, _listObj)
 
 		So(err, ShouldBeError)
-		So(err.Error(), ShouldContainSubstring, "invalid password")
+		So(err.Error(), ShouldContainSubstring, "password is required")
 	})
 
 	Convey("Correct Password - it should not throw an error", func() {
