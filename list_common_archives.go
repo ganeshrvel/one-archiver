@@ -11,41 +11,40 @@ import (
 
 // List files in the common archives
 func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
-	_filename := arc.meta.Filename
-	_password := arc.meta.Password
-	_listDirectoryPath := arc.read.ListDirectoryPath
-	_recursive := arc.read.Recursive
-	_orderBy := arc.read.OrderBy
-	_orderDir := arc.read.OrderDir
-	_gitIgnorePattern := arc.meta.GitIgnorePattern
+	filename := arc.meta.Filename
+	password := arc.meta.Password
+	listDirectoryPath := arc.read.ListDirectoryPath
+	recursive := arc.read.Recursive
+	orderBy := arc.read.OrderBy
+	orderDir := arc.read.OrderDir
+	gitIgnorePattern := arc.meta.GitIgnorePattern
 
-	arcFileObj, err := archiver.ByExtension(_filename)
+	arcFileObj, err := archiver.ByExtension(filename)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = archiveFormat(&arcFileObj, _password, OverwriteExisting)
-
+	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
 	if err != nil {
 		return nil, err
 	}
 
 	var arcWalker, ok = arcFileObj.(archiver.Walker)
 	if !ok {
-		return nil, fmt.Errorf("some error occured while reading the archive")
+		return nil, fmt.Errorf(string(ErrorArchiverList))
 	}
 
 	var filteredPaths []ArchiveFileInfo
 
-	isListDirectoryPathExist := _listDirectoryPath == ""
+	isListDirectoryPathExist := listDirectoryPath == ""
 
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
-	ignoreList = append(ignoreList, _gitIgnorePattern...)
+	ignoreList = append(ignoreList, gitIgnorePattern...)
 	compiledGitIgnoreLines := ignore.CompileIgnoreLines(ignoreList...)
 
-	err = arcWalker.Walk(_filename, func(file archiver.File) error {
+	err = arcWalker.Walk(filename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo
 
 		switch fileHeader := file.Header.(type) {
@@ -103,7 +102,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
 		includeFile := getFilteredFiles(
-			fileInfo, _listDirectoryPath, _recursive,
+			fileInfo, listDirectoryPath, recursive,
 		)
 
 		if includeFile {
@@ -112,7 +111,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 			}
 		}
 
-		if !isListDirectoryPathExist && subpathExists(_listDirectoryPath, fileInfo.FullPath) {
+		if !isListDirectoryPathExist && subpathExists(listDirectoryPath, fileInfo.FullPath) {
 			isListDirectoryPathExist = true
 		}
 
@@ -120,14 +119,14 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 	})
 
 	if !isListDirectoryPathExist {
-		return filteredPaths, fmt.Errorf("path not found to filter: %s", _listDirectoryPath)
+		return filteredPaths, fmt.Errorf("%s: %s", string(ErrorNoPathToFilter), listDirectoryPath)
 	}
 
 	if arc.read.OrderDir == OrderDirNone {
 		return filteredPaths, err
 	}
 
-	sortedPaths := sortFiles(filteredPaths, _orderBy, _orderDir)
+	sortedPaths := sortFiles(filteredPaths, orderBy, orderDir)
 
 	return sortedPaths, err
 }

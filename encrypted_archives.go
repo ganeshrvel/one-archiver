@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ganeshrvel/archiver"
 	"github.com/yeka/zip"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +17,6 @@ func isRarArchiveEncrypted(arcValues *archiver.Rar, filename, password string) (
 	if err != nil {
 		return false, err
 	}
-
 	defer func() {
 		if err := file.Close(); err != nil {
 			fmt.Printf("%v\n", err)
@@ -35,7 +34,6 @@ func isRarArchiveEncrypted(arcValues *archiver.Rar, filename, password string) (
 	}()
 
 	r, err := arcValues.Read()
-
 	defer func() {
 		if r == (archiver.File{}) {
 			return
@@ -58,19 +56,18 @@ func isRarArchiveEncrypted(arcValues *archiver.Rar, filename, password string) (
 }
 
 func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
-	_filename := arc.meta.Filename
-	_password := arc.meta.Password
+	filename := arc.meta.Filename
+	password := arc.meta.Password
 
 	ai := EncryptedArchiveInfo{
 		IsEncrypted:     false,
 		IsValidPassword: false,
 	}
 
-	reader, err := zip.OpenReader(_filename)
+	reader, err := zip.OpenReader(filename)
 	if err != nil {
 		return ai, err
 	}
-
 	defer func() {
 		if err = reader.Close(); err != nil {
 			fmt.Printf("%v\n", err)
@@ -81,20 +78,19 @@ func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 		if file.IsEncrypted() {
 			ai.IsEncrypted = true
 
-			file.SetPassword(_password)
+			file.SetPassword(password)
 
 			r, err := file.Open()
+			if err != nil {
+				return ai, err
+			}
 			defer func() {
 				if err = r.Close(); err != nil {
 					fmt.Printf("%v\n", err)
 				}
 			}()
 
-			if err != nil {
-				return ai, err
-			}
-
-			_, err = ioutil.ReadAll(r)
+			_, err = io.ReadAll(r)
 			if err != nil {
 				return ai, nil
 			}
@@ -109,21 +105,21 @@ func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 }
 
 func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
-	_filename := arc.meta.Filename
-	_password := arc.meta.Password
+	filename := arc.meta.Filename
+	password := arc.meta.Password
 
 	ai := EncryptedArchiveInfo{
 		IsEncrypted:     false,
 		IsValidPassword: false,
 	}
 
-	arcFileObj, err := archiver.ByExtension(_filename)
+	arcFileObj, err := archiver.ByExtension(filename)
 
 	if err != nil {
 		return ai, err
 	}
 
-	err = archiveFormat(&arcFileObj, _password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
 
 	if err != nil {
 		return ai, err
@@ -132,7 +128,7 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 	switch arcValues := arcFileObj.(type) {
 	case *archiver.Rar:
 		// check if the rar file is encrypted
-		r1, err := isRarArchiveEncrypted(arcValues, _filename, "")
+		r1, err := isRarArchiveEncrypted(arcValues, filename, "")
 		if err != nil {
 			return ai, err
 		}
@@ -141,7 +137,7 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 		if r1 {
 			ai.IsEncrypted = true
 
-			r2, err := isRarArchiveEncrypted(arcValues, _filename, _password)
+			r2, err := isRarArchiveEncrypted(arcValues, filename, password)
 			ai.IsValidPassword = !r2
 
 			if err != nil {
@@ -173,7 +169,7 @@ func IsArchiveEncrypted(meta *ArchiveMeta) (EncryptedArchiveInfo, error) {
 		utilsObj = commonArchive{meta: _meta}
 
 		break
-
+	// todo add 7 zip here
 	default:
 		ai := EncryptedArchiveInfo{
 			IsEncrypted:     false,

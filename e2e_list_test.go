@@ -9,6 +9,92 @@ import (
 )
 
 // TODO symlink and hardlink
+func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, destinationFilename string) {
+	Convey("General tests", func() {
+		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
+			_listObj := &ArchiveRead{
+				ListDirectoryPath: "qwerty/",
+				Recursive:         true,
+				OrderBy:           OrderByName,
+				OrderDir:          OrderDirAsc,
+			}
+
+			_, err := GetArchiveFileList(_metaObj, _listObj)
+
+			So(err, ShouldBeError)
+		})
+	})
+
+	Convey("gitIgnore", func() {
+		Convey("gitIgnore | 1 - it should not throw an error", func() {
+			_listObj := &ArchiveRead{
+				ListDirectoryPath: "",
+			}
+
+			_metaObj.GitIgnorePattern = []string{destinationFilename}
+
+			result, err := GetArchiveFileList(_metaObj, _listObj)
+
+			So(err, ShouldBeNil)
+
+			var itemsArr []string
+
+			for _, item := range result {
+				itemsArr = append(itemsArr, item.FullPath)
+			}
+
+			var assertionArr []string
+
+			So(itemsArr, ShouldResemble, assertionArr)
+		})
+
+		Convey("gitIgnore | 2  - it should not throw an error", func() {
+			_listObj := &ArchiveRead{
+				ListDirectoryPath: "",
+			}
+
+			_metaObj.GitIgnorePattern = []string{"some dummy"}
+
+			result, err := GetArchiveFileList(_metaObj, _listObj)
+
+			So(err, ShouldBeNil)
+
+			var itemsArr []string
+
+			for _, item := range result {
+				itemsArr = append(itemsArr, item.FullPath)
+			}
+
+			assertionArr := []string{destinationFilename}
+
+			So(itemsArr, ShouldResemble, assertionArr)
+		})
+	})
+
+	Convey("ListDirectoryPath  - it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         false,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirDesc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var itemsArr []string
+
+		for _, item := range result {
+			itemsArr = append(itemsArr, item.FullPath)
+		}
+
+		assertionArr := []string{destinationFilename}
+
+		So(itemsArr, ShouldResemble, assertionArr)
+	})
+}
+
 func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
@@ -993,6 +1079,57 @@ func TestArchiveListing(t *testing.T) {
 
 		_testArchiveListing(_metaObj, false)
 	})
+
+	Convey("Unpacking compressed file | GZ", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.zst")
+
+		metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+
+		_testCompressedFileListing(metaObj, true, "mock_test_file1")
+	})
+	Convey("Unpacking compressed file | GZ", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.a.txt.gz")
+
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1.a.txt")
+	})
+
+	Convey("Unpacking compressed file | Zstd", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.zst")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
+
+	Convey("Unpacking compressed file | Xz", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.xz")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
+
+	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.sz")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
+
+	Convey("Unpacking compressed file | Lz4", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.lz4")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
+
+	Convey("Unpacking compressed file | Bz2", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.bz2")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
+
+	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
+		filename := getTestMocksAsset("mock_test_file1.br")
+		_metaObj := &ArchiveMeta{Filename: filename, Password: ""}
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1")
+	})
 }
 
 func TestArchiveListingPassword(t *testing.T) {
@@ -1017,6 +1154,7 @@ func TestArchiveListingPassword(t *testing.T) {
 		_testArchiveListingInvalidPasswordCommonArchives(_metaObj)
 	})
 }
+
 //
 //func TestWindowsArchiveListing(t *testing.T) {
 //

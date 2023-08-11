@@ -1,3 +1,4 @@
 tests/mocks-build/*
 .idea
 /.idea/
+resources

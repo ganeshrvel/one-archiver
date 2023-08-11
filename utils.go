@@ -38,7 +38,7 @@ func GetHomeDirFile(filename string) string {
 	return filepath.Join(_home, filename)
 }
 
-// Get Parent path of a list of directories and files
+// GetCommonParentPath - Get Parent path of a list of directories and files
 func GetCommonParentPath(sep byte, paths ...string) string {
 	// Handle special cases.
 	switch len(paths) {

@@ -1,13 +1,14 @@
 package onearchiver
 
 import (
-	rxgo "github.com/ReactiveX/RxGo"
+	"github.com/reactivex/rxgo/v2"
 	"time"
 )
 
 func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxgo.Item) {
 	pInfo := ProgressInfo{
 		StartTime:          time.Now(),
+		lastSentTime:       time.Now(),
 		TotalFiles:         totalFiles,
 		ProgressCount:      0,
 		CurrentFilename:    "",
@@ -30,12 +31,21 @@ func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxg
 }
 
 func (pInfo *ProgressInfo) progress(ch *chan rxgo.Item, totalFiles int, absolutePath string, progressCount int) {
+	now := time.Now()
+	timeDifference := now.Sub(pInfo.lastSentTime)
+
+	// leave a threshold of 500 milliseconds to avoid hogging up the cpu
+	if timeDifference <= 500*time.Millisecond {
+		return
+	}
+
 	progressPercentage := Percent(float32(progressCount), float32(totalFiles))
 
 	pInfo.TotalFiles = totalFiles
 	pInfo.ProgressCount = progressCount
 	pInfo.CurrentFilename = absolutePath
 	pInfo.ProgressPercentage = progressPercentage
+	pInfo.lastSentTime = time.Now()
 
 	*ch <- rxgo.Of(pInfo)
 }
@@ -45,6 +55,7 @@ func (pInfo *ProgressInfo) endProgress(ch *chan rxgo.Item, totalFiles int) {
 	pInfo.ProgressCount = totalFiles
 	pInfo.CurrentFilename = ""
 	pInfo.ProgressPercentage = 100.00
+	pInfo.lastSentTime = time.Now()
 
 	*ch <- rxgo.Of(pInfo)
 

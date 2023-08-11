@@ -4,7 +4,6 @@ package onearchiver
 
 import (
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -93,19 +92,19 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 		return nil, err
 	}
 
-	/// if archive is encrypted and if password field is empty
+	/// if an archive is encrypted and if password field is empty
 	/// then return 'password is required' error
 	if iae.IsEncrypted && len(_meta.Password) < 1 {
-		return nil, fmt.Errorf("password is required")
+		return nil, fmt.Errorf(string(ErrorPasswordRequired))
 	}
 
-	/// if archive is encrypted and if the password is invalid
+	/// if an archive is encrypted and if the password is invalid
 	/// then return 'invalid password' error
 	if iae.IsEncrypted && !iae.IsValidPassword {
-		return nil, fmt.Errorf("invalid password")
+		return nil, fmt.Errorf(string(ErrorInvalidPassword))
 	}
 
-	ext := filepath.Ext(meta.Filename)
+	ext := extension(meta.Filename)
 
 	// add a trailing slash to [listDirectoryPath] if missing
 	if _read.ListDirectoryPath != "" && !strings.HasSuffix(_read.ListDirectoryPath, PathSep) {
@@ -113,9 +112,36 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 	}
 
 	switch ext {
-	case ".zip":
+	case "zip":
 		arcObj = zipArchive{meta: _meta, read: _read}
-
+	case "zst":
+		fallthrough
+	case "xz":
+		fallthrough
+	case "sz":
+		fallthrough
+	case "lz4":
+		fallthrough
+	case "bz2":
+		fallthrough
+	case "br":
+		fallthrough
+	case "gz":
+		arcObj = compressedFile{meta: _meta, read: _read}
+	case "tar.zst":
+		fallthrough
+	case "tar.xz":
+		fallthrough
+	case "tar.sz":
+		fallthrough
+	case "tar.lz4":
+		fallthrough
+	case "tar.bz2":
+		fallthrough
+	case "tar.br":
+		fallthrough
+	case "tar.gz":
+		fallthrough
 	default:
 		arcObj = commonArchive{meta: _meta, read: _read}
 	}

@@ -397,6 +397,96 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 	})
 }
 
+func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, packedFileName string) {
+
+	Convey("Single path in 'fileList' | selected - a file  | It should not throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir1/a.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List Packed compressed file", func() {
+			assertionArr := []string{packedFileName}
+
+			_testListingPackedArchive(_metaObj, assertionArr)
+		})
+	})
+
+	return
+
+	Convey("gitIgnorePattern | It should NOT throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir1/a.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		_metaObj.GitIgnorePattern = []string{"b.txt"}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List Packed compressed file", func() {
+			assertionArr := []string{packedFileName}
+
+			_testListingPackedArchive(_metaObj, assertionArr)
+		})
+	})
+
+	Convey("gitIgnorePattern | It should throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir1/2/b.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		_metaObj.GitIgnorePattern = []string{"b.txt"}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "atleast a single file is required for creating a compress file")
+	})
+
+	Convey("no files in the pathlist | It should throw an error", func() {
+		_packObj := &ArchivePack{
+			FileList: []string{},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "atleast a single file is required for creating a compress file")
+	})
+
+	Convey("Multiple paths in 'fileList' | It should throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir3/")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "only a single file be packed to a compressed file, no directories are allowed")
+	})
+
+	Convey("Multiple paths in 'fileList' | selected - 2 files | It should throw an error", func() {
+		path2 := getTestMocksAsset("mock_dir2/3/2/b.txt")
+		path3 := getTestMocksAsset("mock_dir3/dir_1/1/a.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path2, path3},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "only a single file can be packed to a compressed file")
+	})
+}
+
 func TestPacking(t *testing.T) {
 	//if testing.Short() {
 	//	t.Skip("skipping 'TestPacking' testing in short mode")
@@ -501,5 +591,56 @@ func TestPacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		_testPacking(_metaObj, &ph)
+	})
+
+	Convey("Packing compressed file | GZ", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.gz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+	Convey("Packing compressed file | GZ", t, func() {
+		filename := newTempMocksAsset("arc_test.a.txt.gz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test.a.txt")
+	})
+
+	Convey("Packing compressed file | Zstd", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.zst")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Packing compressed file | Xz", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.xz")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Packing compressed file | sz (Snappy)", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.sz")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Packing compressed file | Lz4", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.lz4")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Packing compressed file | Bz2", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.bz2")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Packing compressed file | BR (Brotli)", t, func() {
+		filename := newTempMocksAsset("arc_test_pack.br")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testCompressedFilePacking(_metaObj, &ph, "arc_test_pack")
 	})
 }

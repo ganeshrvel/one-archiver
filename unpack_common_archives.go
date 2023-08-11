@@ -6,28 +6,27 @@ import (
 	"github.com/nwaples/rardecode"
 	ignore "github.com/sabhiram/go-gitignore"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
 func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiver.Walker }, ph *ProgressHandler) error {
-	_filename := arc.meta.Filename
-	_gitIgnorePattern := arc.meta.GitIgnorePattern
-	_fileList := arc.unpack.FileList
-	_destination := arc.unpack.Destination
+	sourceFilename := arc.meta.Filename
+	gitIgnorePattern := arc.meta.GitIgnorePattern
+	fileList := arc.unpack.FileList
+	destinationPath := arc.unpack.Destination
 
-	allowFileFiltering := len(_fileList) > 0
+	allowFileFiltering := len(fileList) > 0
 
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
-	ignoreList = append(ignoreList, _gitIgnorePattern...)
+	ignoreList = append(ignoreList, gitIgnorePattern...)
 
 	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 
 	commonArchiveFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 
-	err := arcWalker.Walk(_filename, func(file archiver.File) error {
+	err := arcWalker.Walk(sourceFilename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo
 
 		switch fileHeader := file.Header.(type) {
@@ -76,7 +75,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 		}
 
 		if allowFileFiltering {
-			matched := StringFilter(_fileList, func(s string) bool {
+			matched := StringFilter(fileList, func(s string) bool {
 				_fName := fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
 				return subpathExists(s, _fName)
@@ -91,7 +90,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 			return nil
 		}
 
-		_absPath := filepath.Join(_destination, fileInfo.FullPath)
+		destinationFileAbsPath := filepath.Join(destinationPath, fileInfo.FullPath)
 
 		fileData := make([]byte, file.Size())
 		numBytesRead, err := file.Read(fileData)
@@ -99,8 +98,8 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 			return err
 		}
 
-		commonArchiveFilePathListMap[_absPath] = extractCommonArchiveFileInfo{
-			absFilepath: _absPath,
+		commonArchiveFilePathListMap[destinationFileAbsPath] = extractCommonArchiveFileInfo{
+			absFilepath: destinationFileAbsPath,
 			name:        fileInfo.Name,
 			fileInfo:    &fileInfo,
 			fileBytes:   &fileData,
@@ -124,8 +123,8 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 	pInfo.endProgress(ch, totalFiles)
 
-	if !exists(_destination) {
-		if err := os.Mkdir(_destination, 0755); err != nil {
+	if !exists(destinationPath) {
+		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
 	}
@@ -133,20 +132,20 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	return err
 }
 
-func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, filename string) error {
+func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinationFileAbsPath string) error {
 	if file.fileInfo.IsDir {
-		if err := os.MkdirAll(filename, os.ModePerm); err != nil {
+		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
 
 		return nil
 	} else {
-		_basename := filepath.Dir(filename)
+		parent := filepath.Dir(destinationFileAbsPath)
 
-		if err := os.MkdirAll(_basename, os.ModePerm); err != nil {
+		if err := os.MkdirAll(parent, os.ModePerm); err != nil {
 			return err
 		}
 	}
 
-	return ioutil.WriteFile(file.absFilepath, *file.fileBytes, file.fileInfo.Mode)
+	return os.WriteFile(file.absFilepath, *file.fileBytes, file.fileInfo.Mode)
 }

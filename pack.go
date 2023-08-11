@@ -11,17 +11,17 @@ import (
 )
 
 func (arc zipArchive) doPack(ph *ProgressHandler) error {
-	_fileList := arc.pack.FileList
+	fileList := arc.pack.FileList
 
-	commonParentPath := GetCommonParentPath(os.PathSeparator, _fileList...)
+	commonParentPath := GetCommonParentPath(os.PathSeparator, fileList...)
 
-	if indexExists(&_fileList, 0) && commonParentPath == _fileList[0] {
-		commonParentPathSplitted := strings.Split(_fileList[0], PathSep)
+	if indexExists(&fileList, 0) && commonParentPath == fileList[0] {
+		commonParentPathSplitted := strings.Split(fileList[0], PathSep)
 
 		commonParentPath = strings.Join(commonParentPathSplitted[:len(commonParentPathSplitted)-1], PathSep)
 	}
 
-	if err := createZipFile(&arc, _fileList, commonParentPath, ph); err != nil {
+	if err := createZipFile(&arc, fileList, commonParentPath, ph); err != nil {
 		return err
 	}
 
@@ -29,10 +29,10 @@ func (arc zipArchive) doPack(ph *ProgressHandler) error {
 }
 
 func (arc commonArchive) doPack(ph *ProgressHandler) error {
-	_filename := arc.meta.Filename
-	_fileList := arc.pack.FileList
+	filename := arc.meta.Filename
+	fileList := arc.pack.FileList
 
-	arcFileObj, err := archiver.ByExtension(_filename)
+	arcFileObj, err := archiver.ByExtension(filename)
 
 	if err != nil {
 		return err
@@ -44,51 +44,48 @@ func (arc commonArchive) doPack(ph *ProgressHandler) error {
 		return err
 	}
 
-	commonParentPath := GetCommonParentPath(os.PathSeparator, _fileList...)
+	commonParentPath := GetCommonParentPath(os.PathSeparator, fileList...)
 
-	if indexExists(&_fileList, 0) && commonParentPath == _fileList[0] {
-		commonParentPathSplitted := strings.Split(_fileList[0], PathSep)
+	if indexExists(&fileList, 0) && commonParentPath == fileList[0] {
+		commonParentPathSplitted := strings.Split(fileList[0], PathSep)
 
 		commonParentPath = strings.Join(commonParentPathSplitted[:len(commonParentPathSplitted)-1], PathSep)
 	}
 
-	switch archValue := arcFileObj.(type) {
+	switch archFileWrite := arcFileObj.(type) {
 	case *archiver.Tar:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarGz:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarBz2:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarBrotli:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarLz4:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarSz:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarXz:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
 	case *archiver.TarZstd:
-		err = packTarballs(&arc, archValue, &_fileList, commonParentPath, ph)
-
-	// Todo: parking the development of file compressors for now.
-	// It requires a different logic for listing, compressing and uncompressing
-	//case *archiver.Gz:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Brotli:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Bz2:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Lz4:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Snappy:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Xz:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
-	//case *archiver.Zstd:
-	//	err = packCompressFile(&arc, archValue, &_fileList)
+		err = packTarballs(&arc, archFileWrite, &fileList, commonParentPath, ph)
+	case *archiver.Gz:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Brotli:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Bz2:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Lz4:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Snappy:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Xz:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
+	case *archiver.Zstd:
+		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
 
 	default:
-		return fmt.Errorf("archive file format is not supported")
+		return fmt.Errorf(string(ErrorFormatSupported))
 	}
 
 	if err != nil {
@@ -130,13 +127,13 @@ func StartPacking(meta *ArchiveMeta, pack *ArchivePack, ph *ProgressHandler) err
 func getArchiveFilesRelativePath(absFilepath string, commonParentPath string) string {
 	splittedFilepath := strings.Split(absFilepath, commonParentPath)
 
-	_koazeeStream := koazee.StreamOf(splittedFilepath)
-	lastItem := _koazeeStream.Last()
+	koazeeStream := koazee.StreamOf(splittedFilepath)
+	lastItem := koazeeStream.Last()
 
 	return lastItem.String()
 }
 
-func processFilesForPacking(zipFilePathListMap *map[string]createArchiveFileInfo, fileList *[]string, commonParentPath string, gitIgnorePattern *[]string) error {
+func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchiveFileInfo, fileList *[]string, commonParentPath string, gitIgnorePattern *[]string) error {
 	_zipFilePathListMap := *zipFilePathListMap
 	_fileList := *fileList
 
@@ -244,6 +241,49 @@ func processFilesForPacking(zipFilePathListMap *map[string]createArchiveFileInfo
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func processFilesForPackingCompressedFile(zipFilePathListMap *map[string]createArchiveFileInfo, fileSourcePath string, gitIgnorePattern *[]string) error {
+	var ignoreList []string
+	ignoreList = append(ignoreList, GlobalPatternDenylist...)
+	ignoreList = append(ignoreList, *gitIgnorePattern...)
+
+	absFilepath := filepath.ToSlash(fileSourcePath)
+	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
+
+	file, err := os.Open(absFilepath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
+
+	fileInfo, err := os.Lstat(absFilepath)
+	if err != nil {
+		return err
+	}
+
+	if isSymlink(fileInfo) {
+		return nil
+	}
+	relativeFilePath := strings.TrimLeft(fileInfo.Name(), PathSep)
+
+	// ignore the file if pattern matches
+	if ignoreMatches.MatchesPath(relativeFilePath) {
+		return nil
+	}
+
+	(*zipFilePathListMap)[absFilepath] = createArchiveFileInfo{
+		absFilepath:      absFilepath,
+		relativeFilePath: relativeFilePath,
+		isDir:            false,
+		fileInfo:         &fileInfo,
 	}
 
 	return nil

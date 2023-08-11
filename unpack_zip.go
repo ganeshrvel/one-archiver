@@ -10,40 +10,44 @@ import (
 )
 
 func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
-	_filename := arc.meta.Filename
-	_password := arc.meta.Password
-	_destination := arc.unpack.Destination
-	_gitIgnorePattern := arc.meta.GitIgnorePattern
-	_fileList := arc.unpack.FileList
+	sourceFilepath := arc.meta.Filename
+	password := arc.meta.Password
+	destinationPath := arc.unpack.Destination
+	gitIgnorePattern := arc.meta.GitIgnorePattern
+	fileList := arc.unpack.FileList
 
-	allowFileFiltering := len(_fileList) > 0
+	allowFileFiltering := len(fileList) > 0
 
-	reader, err := zip.OpenReader(_filename)
+	sourceReader, err := zip.OpenReader(sourceFilepath)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err := sourceReader.Close(); err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
-	ignoreList = append(ignoreList, _gitIgnorePattern...)
+	ignoreList = append(ignoreList, gitIgnorePattern...)
 
 	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
-
 	zipFilePathListMap := make(map[string]extractZipFileInfo)
 
-	for _, file := range reader.File {
+	for _, file := range sourceReader.File {
 		if file.IsEncrypted() {
-			file.SetPassword(_password)
+			file.SetPassword(password)
 		}
 
 		fileName := filepath.ToSlash(file.Name)
-		_fileInfo := file.FileInfo()
+		fileInfo := file.FileInfo()
 
 		if allowFileFiltering {
-			matched := StringFilter(_fileList, func(s string) bool {
-				_filterFName := fixDirSlash(_fileInfo.IsDir(), fileName)
+			matched := StringFilter(fileList, func(s string) bool {
+				filterFName := fixDirSlash(fileInfo.IsDir(), fileName)
 
-				return subpathExists(s, _filterFName)
+				return subpathExists(s, filterFName)
 			})
 
 			if len(matched) < 1 {
@@ -55,39 +59,33 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 			continue
 		}
 
-		_absPath := filepath.Join(_destination, fileName)
+		destinationFileAbsPath := filepath.Join(destinationPath, fileName)
 
-		zipFilePathListMap[_absPath] = extractZipFileInfo{
-			absFilepath: _absPath,
+		zipFilePathListMap[destinationFileAbsPath] = extractZipFileInfo{
+			absFilepath: destinationFileAbsPath,
 			name:        fileName,
-			fileInfo:    &_fileInfo,
+			fileInfo:    &fileInfo,
 			zipFileInfo: file,
 		}
 	}
 
-	totalFiles := len(reader.File)
+	totalFiles := len(sourceReader.File)
 	pInfo, ch := initProgress(totalFiles, ph)
 
 	count := 0
-	for absolutePath, file := range zipFilePathListMap {
+	for destinationFileAbsPath, file := range zipFilePathListMap {
 		count += 1
-		pInfo.progress(ch, totalFiles, absolutePath, count)
+		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
 
-		if err := addFileFromZipToDisk(file.zipFileInfo, absolutePath); err != nil {
+		if err := addFileFromZipToDisk(file.zipFileInfo, destinationFileAbsPath); err != nil {
 			return err
 		}
 	}
 
 	pInfo.endProgress(ch, totalFiles)
 
-	defer func() {
-		if err := reader.Close(); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-	}()
-
-	if !exists(_destination) {
-		if err := os.Mkdir(_destination, 0755); err != nil {
+	if !exists(destinationPath) {
+		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
 	}
@@ -95,13 +93,11 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	return nil
 }
 
-func addFileFromZipToDisk(file *zip.File, filename string) error {
+func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 	fileToExtract, err := file.Open()
-
 	if err != nil {
 		return err
 	}
-
 	defer func() {
 		if err := fileToExtract.Close(); err != nil {
 			fmt.Printf("%v\n", err)
@@ -109,20 +105,20 @@ func addFileFromZipToDisk(file *zip.File, filename string) error {
 	}()
 
 	if file.FileInfo().IsDir() {
-		if err := os.MkdirAll(filename, os.ModePerm); err != nil {
+		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
 
 		return nil
 	} else {
-		_basename := filepath.Dir(filename)
+		parent := filepath.Dir(destinationFileAbsPath)
 
-		if err := os.MkdirAll(_basename, os.ModePerm); err != nil {
+		if err := os.MkdirAll(parent, os.ModePerm); err != nil {
 			return err
 		}
 	}
 
-	writer, err := os.Create(filename)
+	writer, err := os.Create(destinationFileAbsPath)
 	if err != nil {
 		return err
 	}

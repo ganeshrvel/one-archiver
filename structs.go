@@ -61,6 +61,13 @@ type zipArchive struct {
 	unpack ArchiveUnpack // required for unarchiving files
 }
 
+type compressedFile struct {
+	meta   ArchiveMeta   // required
+	read   ArchiveRead   // required for listing files
+	pack   ArchivePack   // required for archiving files
+	unpack ArchiveUnpack // required for unarchiving files
+}
+
 type commonArchive struct {
 	meta   ArchiveMeta   // required
 	read   ArchiveRead   // required for listing files
@@ -113,6 +120,7 @@ type ProgressInfo struct {
 	ProgressCount      int
 	CurrentFilename    string
 	ProgressPercentage float32
+	lastSentTime       time.Time
 }
 
 type ProgressHandler struct {
