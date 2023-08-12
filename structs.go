@@ -1,7 +1,7 @@
 package onearchiver
 
 import (
-	"github.com/yeka/zip"
+	"github.com/ganeshrvel/yeka_zip"
 	"os"
 	"time"
 )

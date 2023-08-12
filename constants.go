@@ -1,6 +1,9 @@
 package onearchiver
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 var (
 	GlobalPatternDenylist = []string{"pax_global_header", "__MACOSX/*", "*.DS_Store"}
@@ -8,7 +11,8 @@ var (
 )
 
 const (
-	OverwriteExisting = true
+	OverwriteExisting          = true
+	ProgressStreamDebounceTime = 1 * time.Second // 1 second
 )
 
 var allowedSecondExtensions allowedSecondExtMap = map[string]string{"tar": "tar"}

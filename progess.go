@@ -34,8 +34,8 @@ func (pInfo *ProgressInfo) progress(ch *chan rxgo.Item, totalFiles int, absolute
 	now := time.Now()
 	timeDifference := now.Sub(pInfo.lastSentTime)
 
-	// leave a threshold of 500 milliseconds to avoid hogging up the cpu
-	if timeDifference <= 500*time.Millisecond {
+	// debounce time for the progress stream to avoid hogging up the cpu
+	if timeDifference <= ProgressStreamDebounceTime {
 		return
 	}
 

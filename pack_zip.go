@@ -2,7 +2,7 @@ package onearchiver
 
 import (
 	"fmt"
-	"github.com/yeka/zip"
+	"github.com/ganeshrvel/yeka_zip"
 	"io"
 	"os"
 )

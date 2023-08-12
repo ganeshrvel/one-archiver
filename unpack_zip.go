@@ -2,8 +2,8 @@ package onearchiver
 
 import (
 	"fmt"
+	"github.com/ganeshrvel/yeka_zip"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/yeka/zip"
 	"io"
 	"os"
 	"path/filepath"

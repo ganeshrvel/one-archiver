@@ -2,8 +2,8 @@ package onearchiver
 
 import (
 	"fmt"
+	"github.com/ganeshrvel/yeka_zip"
 	"github.com/kr/pretty"
-	"github.com/yeka/zip"
 	"time"
 )
 
@@ -146,5 +146,3 @@ func Unpack() {
 
 	fmt.Printf("Result: %+v\n", "Success")
 }
-
-

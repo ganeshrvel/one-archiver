@@ -1,8 +1,8 @@
 package onearchiver
 
 import (
+	"github.com/ganeshrvel/yeka_zip"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/yeka/zip"
 	"path/filepath"
 	"strings"
 	"testing"

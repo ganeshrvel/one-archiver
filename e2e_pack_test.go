@@ -1,8 +1,8 @@
 package onearchiver
 
 import (
+	"github.com/ganeshrvel/yeka_zip"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/yeka/zip"
 	"testing"
 )
 
@@ -524,6 +524,42 @@ func TestPacking(t *testing.T) {
 			Filename:         filename,
 			Password:         "1234567",
 			EncryptionMethod: zip.StandardEncryption,
+		}
+
+		_testPacking(_metaObj, &ph)
+	})
+
+	Convey("Packing | Encrypted - ZIP (AES128Encryption)", t, func() {
+		filename := newTempMocksAsset("arc_test_aes128enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES128Encryption,
+		}
+
+		_testPacking(_metaObj, &ph)
+	})
+
+	Convey("Packing | Encrypted - ZIP (AES256Encryption)", t, func() {
+		filename := newTempMocksAsset("arc_test_aes256enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES256Encryption,
+		}
+
+		_testPacking(_metaObj, &ph)
+	})
+
+	Convey("Packing | Encrypted - ZIP (AES192Encryption)", t, func() {
+		filename := newTempMocksAsset("arc_test_aes192enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES192Encryption,
 		}
 
 		_testPacking(_metaObj, &ph)

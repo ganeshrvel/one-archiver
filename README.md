@@ -111,7 +111,7 @@ fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted,
 ```go
 import (
 	"fmt"
-	"github.com/yeka/zip"
+	"github.com/ganeshrvel/yeka_zip"
 	"time"
 )
 
@@ -161,7 +161,7 @@ fmt.Printf("Result: %+v\n", "Success")
 ```go
 import (
 	"fmt"
-	"github.com/yeka/zip"
+	"github.com/ganeshrvel/yeka_zip"
 	"time"
 )
 

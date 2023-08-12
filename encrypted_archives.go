@@ -3,7 +3,7 @@ package onearchiver
 import (
 	"fmt"
 	"github.com/ganeshrvel/archiver"
-	"github.com/yeka/zip"
+	"github.com/ganeshrvel/yeka_zip"
 	"io"
 	"os"
 	"path/filepath"
