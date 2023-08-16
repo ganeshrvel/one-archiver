@@ -34,12 +34,13 @@ func (pInfo *ProgressInfo) progress(ch *chan rxgo.Item, totalFiles int, absolute
 	now := time.Now()
 	timeDifference := now.Sub(pInfo.lastSentTime)
 
+	progressPercentage := Percent(float32(progressCount), float32(totalFiles))
+
 	// debounce time for the progress stream to avoid hogging up the cpu
-	if timeDifference <= ProgressStreamDebounceTime {
+	// if the progressPercentage is 100% then emit an event
+	if timeDifference <= ProgressStreamDebounceTime && progressPercentage < 100 {
 		return
 	}
-
-	progressPercentage := Percent(float32(progressCount), float32(totalFiles))
 
 	pInfo.TotalFiles = totalFiles
 	pInfo.ProgressCount = progressCount
