@@ -8,7 +8,7 @@ import (
 func initProgress(totalFiles int, ph *ProgressHandler) (*ProgressInfo, *chan rxgo.Item) {
 	pInfo := ProgressInfo{
 		StartTime:          time.Now(),
-		lastSentTime:       time.Now(),
+		lastSentTime:       time.Time{},
 		TotalFiles:         totalFiles,
 		ProgressCount:      0,
 		CurrentFilename:    "",
