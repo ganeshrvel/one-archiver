@@ -1,4 +1,4 @@
-module onearchiver
+module github.com/ganeshrvel/one-archiver
 
 go 1.19
 
@@ -10,6 +10,7 @@ require (
 	github.com/nwaples/rardecode v1.1.3
 	github.com/reactivex/rxgo/v2 v2.5.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	github.com/smartystreets/goconvey v1.8.1
 	github.com/wesovilabs/koazee v0.0.5
 )
 
@@ -26,11 +27,9 @@ require (
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/teivah/onecontext v1.3.0 // indirect
