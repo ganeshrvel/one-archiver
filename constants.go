@@ -12,7 +12,7 @@ var (
 
 const (
 	OverwriteExisting          = true
-	ProgressStreamDebounceTime = 1 * time.Second // 1 second
+	ProgressStreamDebounceTime = 500 * time.Millisecond // 500 ms
 )
 
 var allowedSecondExtensions allowedSecondExtMap = map[string]string{"tar": "tar"}

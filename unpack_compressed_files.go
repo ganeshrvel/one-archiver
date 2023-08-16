@@ -28,6 +28,11 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 
 	compressedFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 
+	arcFileStat, err := os.Lstat(sourceFilepath)
+	if err != nil {
+		return err
+	}
+
 	for _, file := range fiList {
 		var fileInfo ArchiveFileInfo
 
@@ -38,7 +43,7 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 			Mode:       file.Mode,
 			Size:       file.Size,
 			IsDir:      isDir,
-			ModTime:    file.ModTime,
+			ModTime:    sanitizeTime(file.ModTime, arcFileStat.ModTime()),
 			Name:       file.Name,
 			FullPath:   fullPath,
 			ParentPath: GetParentDirectory(fullPath),
@@ -128,6 +133,7 @@ func addFileFromCompressedFileToDisk(arcFileDecompressor *interface{ archiver.De
 	}()
 
 	err = (*arcFileDecompressor).Decompress(reader, writer)
+	// todo add a check if continue of error then dont return
 	if err != nil {
 		return err
 	}

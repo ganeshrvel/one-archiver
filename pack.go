@@ -149,10 +149,6 @@ func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchive
 				return err
 			}
 
-			if isSymlink(fileInfo) {
-				return nil
-			}
-
 			absFilepath = filepath.ToSlash(absFilepath)
 			relativeFilePath := absFilepath
 
@@ -254,24 +250,11 @@ func processFilesForPackingCompressedFile(zipFilePathListMap *map[string]createA
 	absFilepath := filepath.ToSlash(fileSourcePath)
 	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 
-	file, err := os.Open(absFilepath)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-	}()
-
 	fileInfo, err := os.Lstat(absFilepath)
 	if err != nil {
 		return err
 	}
 
-	if isSymlink(fileInfo) {
-		return nil
-	}
 	relativeFilePath := strings.TrimLeft(fileInfo.Name(), PathSep)
 
 	// ignore the file if pattern matches

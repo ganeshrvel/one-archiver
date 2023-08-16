@@ -66,11 +66,7 @@ func IsEncrypted() {
 	fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted, result.IsValidPassword)
 }
 
-func Pack() {
-	filename := GetDesktopFile("12345.pack.zip")
-	path1 := GetDesktopFile("test")
-	path2 := GetDesktopFile("openmtp")
-
+func Pack(filename string, fileList []string) {
 	am := &ArchiveMeta{
 		Filename:         filename,
 		GitIgnorePattern: []string{},
@@ -79,7 +75,7 @@ func Pack() {
 	}
 
 	ap := &ArchivePack{
-		FileList: []string{path1, path2},
+		FileList: fileList,
 	}
 
 	ph := &ProgressHandler{
@@ -107,9 +103,9 @@ func Pack() {
 	fmt.Printf("Result: %+v\n", "Success")
 }
 
-func Unpack() {
-	filename := getTestMocksAsset("mock_test_file1.zip")
-	tempDir := newTempMocksDir("arc_test_pack/", false)
+func Unpack(filename, tempDir string) {
+	//filename := getTestMocksAsset("mock_test_file1.zip")
+	//tempDir := newTempMocksDir("arc_test_pack/", false)
 
 	am := &ArchiveMeta{
 		Filename:         filename,

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ganeshrvel/yeka_zip"
 	ignore "github.com/sabhiram/go-gitignore"
+	"os"
 	"path/filepath"
 )
 
@@ -20,6 +21,10 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 	orderDir := arc.read.OrderDir
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 
+	arcFileStat, err := os.Lstat(filename)
+	if err != nil {
+		return nil, err
+	}
 	reader, err := zip.OpenReader(filename)
 	if err != nil {
 		return nil, err
@@ -52,7 +57,7 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 			Mode:       file.FileInfo().Mode(),
 			Size:       file.FileInfo().Size(),
 			IsDir:      isDir,
-			ModTime:    file.FileInfo().ModTime(),
+			ModTime:    sanitizeTime(file.FileInfo().ModTime(), arcFileStat.ModTime()),
 			Name:       name,
 			FullPath:   fullPath,
 			ParentPath: GetParentDirectory(fullPath),

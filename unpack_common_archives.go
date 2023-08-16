@@ -2,6 +2,7 @@ package onearchiver
 
 import (
 	"archive/tar"
+	"fmt"
 	"github.com/ganeshrvel/archiver"
 	"github.com/nwaples/rardecode"
 	ignore "github.com/sabhiram/go-gitignore"
@@ -16,6 +17,11 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	fileList := arc.unpack.FileList
 	destinationPath := arc.unpack.Destination
 
+	arcFileStat, err := os.Lstat(sourceFilename)
+	if err != nil {
+		return err
+	}
+
 	allowFileFiltering := len(fileList) > 0
 
 	var ignoreList []string
@@ -26,7 +32,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 	commonArchiveFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 
-	err := arcWalker.Walk(sourceFilename, func(file archiver.File) error {
+	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo
 
 		switch fileHeader := file.Header.(type) {
@@ -38,7 +44,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       file.Name(),
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
@@ -52,7 +58,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       filepath.Base(fullPath),
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
@@ -67,7 +73,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       file.Name(),
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
@@ -92,17 +98,12 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 		destinationFileAbsPath := filepath.Join(destinationPath, fileInfo.FullPath)
 
-		fileData := make([]byte, file.Size())
-		numBytesRead, err := file.Read(fileData)
-		if err != nil && !(numBytesRead == int(file.Size()) && err == io.EOF) {
-			return err
-		}
-
 		commonArchiveFilePathListMap[destinationFileAbsPath] = extractCommonArchiveFileInfo{
 			absFilepath: destinationFileAbsPath,
 			name:        fileInfo.Name,
 			fileInfo:    &fileInfo,
-			fileBytes:   &fileData,
+			fi:          &file,
+			osFileInfo:  &file.FileInfo,
 		}
 
 		return nil
@@ -133,7 +134,8 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 }
 
 func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinationFileAbsPath string) error {
-	if file.fileInfo.IsDir {
+	_file := *file
+	if _file.fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
@@ -147,5 +149,52 @@ func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinat
 		}
 	}
 
-	return os.WriteFile(file.absFilepath, *file.fileBytes, file.fileInfo.Mode)
+	if isSymlink(*_file.osFileInfo) {
+		targetPathBytes := ""
+		switch fileHeader := _file.fi.Header.(type) {
+		case *tar.Header:
+			targetPathBytes = fileHeader.Linkname
+		}
+
+		if targetPathBytes == "" {
+			r, err := io.ReadAll(_file.fi.ReadCloser)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if err := _file.fi.ReadCloser.Close(); err != nil {
+					fmt.Printf("%v\n", err)
+				}
+			}()
+
+			targetPathBytes = string(r)
+		}
+
+		targetPath := filepath.ToSlash(string(targetPathBytes))
+		// todo add a check if continue of error then dont return
+		return os.Symlink(targetPath, _file.absFilepath)
+	}
+
+	w, err := os.OpenFile(destinationFileAbsPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, _file.fileInfo.Mode)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := w.Close(); err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
+
+	// todo add a check if continue of error then dont return
+	numBytesWritten, err := io.Copy(w, _file.fi.ReadCloser)
+	if err != nil && !(numBytesWritten == _file.fileInfo.Size && err == io.EOF) {
+		return err
+	}
+	defer func() {
+		if err := _file.fi.ReadCloser.Close(); err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
+
+	return nil
 }

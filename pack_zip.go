@@ -5,6 +5,7 @@ import (
 	"github.com/ganeshrvel/yeka_zip"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, ph *ProgressHandler) error {
@@ -49,11 +50,7 @@ func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, 
 		count += 1
 		pInfo.progress(ch, totalFiles, absolutePath, count)
 
-		if password == "" {
-			if err := addFileToRegularZip(zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath); err != nil {
-				return err
-			}
-		} else if err := addFileToEncryptedZip(zipWriter, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
+		if err := addFileToZip(zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
 			return err
 		}
 	}
@@ -63,43 +60,55 @@ func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, 
 	return err
 }
 
-func addFileToRegularZip(zipWriter *zip.Writer, fileInfo os.FileInfo, filename string, relativeFilename string) error {
-	fileToZip, err := os.Open(filename)
+func addFileToZip(
+	zipWriter *zip.Writer,
+	fileInfo os.FileInfo,
+	filename string,
+	relativeFilename string,
+	password string,
+	encryptionMethod zip.EncryptionMethod,
 
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := fileToZip.Close(); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-	}()
+) error {
+	var reader io.Reader
 
 	header, err := zip.FileInfoHeader(fileInfo)
-
 	if err != nil {
 		return err
 	}
-
-	header.Name = relativeFilename
 
 	// see http://golang.org/pkg/archive/zip/#pkg-constants
 	header.Method = zip.Deflate
+	header.Name = relativeFilename
+
+	if password != "" {
+		header.SetModTime(fileInfo.ModTime())
+		header.SetPassword(password)
+		header.SetEncryptionMethod(encryptionMethod)
+	}
 
 	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {
 		return err
 	}
 
-	_, _ = io.Copy(writer, fileToZip)
+	if isSymlink(fileInfo) {
+		target, err := os.Readlink(filename)
+		if err != nil {
+			return err
+		}
 
-	return err
-}
+		// Write symlink's target to writer - file's body for symlinks is the symlink target.
+		// todo add a check if continue of error then dont return
+		_, _ = writer.Write([]byte(filepath.ToSlash(target)))
+		if err != nil {
+			return err
+		}
 
-func addFileToEncryptedZip(zipWriter *zip.Writer, filename string, relativeFilename string, password string,
-	encryptionMethod zip.EncryptionMethod) error {
+		return nil
+
+	}
+
 	fileToZip, err := os.Open(filename)
-
 	if err != nil {
 		return err
 	}
@@ -108,14 +117,10 @@ func addFileToEncryptedZip(zipWriter *zip.Writer, filename string, relativeFilen
 			fmt.Printf("%v\n", err)
 		}
 	}()
+	reader = fileToZip
 
-	writer, err := zipWriter.Encrypt(relativeFilename, password, encryptionMethod)
-
-	if err != nil {
-		return err
-	}
-
-	_, _ = io.Copy(writer, fileToZip)
+	// todo add a check if continue of error then dont return
+	_, _ = io.Copy(writer, reader)
 
 	return err
 }

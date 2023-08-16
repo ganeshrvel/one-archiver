@@ -7,6 +7,7 @@ const (
 	OrderByModTime  ArchiveOrderBy = "modTime"
 	OrderByName     ArchiveOrderBy = "name"
 	OrderByFullPath ArchiveOrderBy = "fullPath"
+	OrderByKind     ArchiveOrderBy = "kind"
 )
 
 type ArchiveOrderDir string

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -20,6 +21,15 @@ func getTestMocksAsset(_filePath string) string {
 	resultPath = fmt.Sprintf("%s%s", resultPath, _filePath)
 
 	if exist := exists(resultPath); !exist {
+		fi, err := os.Lstat(resultPath)
+		if err != nil {
+			log.Panicf("\ninvalid lstat: %s\n", err)
+		}
+
+		if isSymlink(fi) {
+			return resultPath
+		}
+
 		log.Panicf("\nthe 'mocks' asset not found: %s\n", resultPath)
 	}
 
@@ -141,4 +151,9 @@ func listUnpackedDirectory(destination string) []string {
 	}
 
 	return itemsArr
+}
+
+func MatchRegex(input, pattern string) bool {
+	match, _ := regexp.MatchString(pattern, input)
+	return match
 }

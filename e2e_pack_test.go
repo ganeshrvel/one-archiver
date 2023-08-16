@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-// TODO symlink and hardlink
 func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string) {
 	Convey("recursive=true | Asc - it should not throw an error", func() {
 		_listObj := &ArchiveRead{
@@ -390,7 +389,24 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		So(err, ShouldBeNil)
 
 		Convey("List Packed Archive files", func() {
-			assertionArr := []string{"a.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
+			assertionArr := []string{"a.txt", "b.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
+
+			_testListingPackedArchive(_metaObj, assertionArr)
+		})
+	})
+
+	Convey("symlink mock_dir5 | directory with bad and good symlink | It should not throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir5/")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List Packed Archive files", func() {
+			assertionArr := []string{"a.txt", "b.txt", "cc.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
 
 			_testListingPackedArchive(_metaObj, assertionArr)
 		})
@@ -415,8 +431,6 @@ func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, pack
 			_testListingPackedArchive(_metaObj, assertionArr)
 		})
 	})
-
-	return
 
 	Convey("gitIgnorePattern | It should NOT throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
@@ -484,6 +498,35 @@ func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, pack
 
 		So(err, ShouldBeError)
 		So(err.Error(), ShouldContainSubstring, "only a single file can be packed to a compressed file")
+	})
+
+	Convey("symlink | b.txt | It should not throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir5/b.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List Packed compressed files", func() {
+			assertionArr := []string{packedFileName}
+
+			_testListingPackedArchive(_metaObj, assertionArr)
+		})
+	})
+
+	Convey("symlink | cc.txt | It should throw an error", func() {
+		path1 := getTestMocksAsset("mock_dir5/cc.txt")
+		_packObj := &ArchivePack{
+			FileList: []string{path1},
+		}
+
+		err := StartPacking(_metaObj, _packObj, ph)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "no such file or directory")
 	})
 }
 

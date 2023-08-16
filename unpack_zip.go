@@ -118,11 +118,24 @@ func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 		}
 	}
 
+	if isSymlink(file.FileInfo()) {
+		targetBytes, err := io.ReadAll(fileToExtract)
+		if err != nil {
+			return err
+		}
+
+		targetPath := filepath.ToSlash(string(targetBytes))
+
+		// todo add a check if continue of error then dont return
+		return os.Symlink(targetPath, destinationFileAbsPath)
+	}
+
 	writer, err := os.Create(destinationFileAbsPath)
 	if err != nil {
 		return err
 	}
 
+	// todo add a check if continue of error then dont return
 	_, _ = io.Copy(writer, fileToExtract)
 
 	return err

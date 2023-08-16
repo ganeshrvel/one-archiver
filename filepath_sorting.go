@@ -27,6 +27,7 @@ func sortPath(list []ArchiveFileInfo, orderDir ArchiveOrderDir) []ArchiveFileInf
 			Name:          x.Name,
 			ParentPath:    x.ParentPath,
 			Extension:     x.Extension,
+			Kind:          x.Kind(),
 		})
 	}
 

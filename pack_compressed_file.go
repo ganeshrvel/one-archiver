@@ -74,12 +74,14 @@ func addFileToCompressedFile(arcFileCompressor *interface{ archiver.Compressor }
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err := fileToArchive.Close(); err != nil {
 			fmt.Printf("%v\n", err)
 		}
 	}()
 
+	// todo add a check if continue of error then dont return
 	err = _arcFileCompressor.Compress(fileToArchive, destinationFileWriter)
 
 	return err

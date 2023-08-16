@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func FileExists(filename string) bool {
@@ -211,4 +212,13 @@ func extension(filename string) string {
 	}
 
 	return extension
+}
+
+func sanitizeTime(objTime time.Time, arcTime time.Time) time.Time {
+	zeroTime := time.Time{}
+	if objTime == zeroTime {
+		return arcTime
+	}
+
+	return objTime
 }

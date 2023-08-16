@@ -1,6 +1,7 @@
 package onearchiver
 
 import (
+	"github.com/ganeshrvel/archiver"
 	"github.com/ganeshrvel/yeka_zip"
 	"os"
 	"time"
@@ -17,6 +18,10 @@ type ArchiveFileInfo struct {
 	FullPath   string
 	ParentPath string
 	Extension  string
+}
+
+func (fi ArchiveFileInfo) Kind() string {
+	return getFileKind(fi.Extension, fi.Mode, fi.IsDir)
 }
 
 type ArchiveMeta struct {
@@ -52,6 +57,7 @@ type filePathListSortInfo struct {
 	FullPath      string
 	ParentPath    string
 	Extension     string
+	Kind          string
 }
 
 type zipArchive struct {
@@ -106,7 +112,8 @@ type extractZipFileInfo struct {
 type extractCommonArchiveFileInfo struct {
 	absFilepath, name string
 	fileInfo          *ArchiveFileInfo
-	fileBytes         *[]byte
+	osFileInfo        *os.FileInfo
+	fi                *archiver.File
 }
 
 type EncryptedArchiveInfo struct {

@@ -1,17 +1,20 @@
 package onearchiver
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/ganeshrvel/archiver"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 func packTarballs(arc *commonArchive, arcFileObj interface{ archiver.Writer }, fileList *[]string, commonParentPath string, ph *ProgressHandler) error {
-	filename := arc.meta.Filename
+	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 
-	out, err := os.Create(filename)
+	out, err := os.Create(destinationFilename)
 	if err != nil {
 		return err
 	}
@@ -51,29 +54,44 @@ func packTarballs(arc *commonArchive, arcFileObj interface{ archiver.Writer }, f
 	return err
 }
 
-func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.FileInfo, filename string, relativeFilename string, isDir bool) error {
+func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.FileInfo, sourceFilename string, relativeSourceFilename string, isDir bool) error {
 	_arcFileObj := *arcFileObj
 
-	_relativeFilename := relativeFilename
+	_relativeFilename := relativeSourceFilename
 
 	if isDir {
 		_relativeFilename = strings.TrimRight(_relativeFilename, PathSep)
 	}
 
-	fileToArchive, err := os.Open(filename)
-	if err != nil {
-		return err
+	var fileToArchive io.ReadCloser
+	if isSymlink(fileInfo) {
+		target, err := os.Readlink(sourceFilename)
+		if err != nil {
+			return err
+		}
+
+		targetReader := bytes.NewReader([]byte(filepath.ToSlash(target)))
+		fileToArchive = io.NopCloser(targetReader)
+	} else {
+		f, err := os.Open(sourceFilename)
+		if err != nil {
+			return err
+		}
+		fileToArchive = f
 	}
+
 	defer func() {
 		if err := fileToArchive.Close(); err != nil {
 			fmt.Printf("%v\n", err)
 		}
 	}()
 
-	err = _arcFileObj.Write(archiver.File{
+	// todo add a check if continue of error then dont return
+	err := _arcFileObj.Write(archiver.File{
 		FileInfo: archiver.FileInfo{
 			FileInfo:   fileInfo,
 			CustomName: _relativeFilename,
+			SourcePath: sourceFilename,
 		},
 		ReadCloser: fileToArchive,
 	})

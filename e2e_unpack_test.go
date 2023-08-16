@@ -1,7 +1,11 @@
 package onearchiver
 
 import (
+	zip "github.com/ganeshrvel/yeka_zip"
 	. "github.com/smartystreets/goconvey/convey"
+	"log"
+	"os"
+	"path"
 	"path/filepath"
 	"testing"
 )
@@ -739,5 +743,284 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "wrong"}
 
 		_testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj, &ph)
+	})
+}
+
+func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler) {
+	Convey("Warm up test CommonArchives | symlink | It should not throw an error", func() {
+		_destination := newTempMocksDir("symlink_mock_test_file5", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		err := StartUnpacking(metaObj, unpackObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List the archive files", func() {
+			assertionArr := []string{"a.txt", "b.txt", "cc.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
+
+			_testListingUnpackedArchive(metaObj, unpackObj, assertionArr, assertionArr)
+		})
+
+		Convey("read the unpacked directory and confirm the symlink property", func() {
+			filesArr := listUnpackedDirectory(_destination)
+			for _, v := range filesArr {
+				if v != "cc.txt" && v != "b.txt" {
+					continue
+				}
+
+				symlinkPath := path.Join(_destination, v)
+				lstat, err := os.Lstat(symlinkPath)
+				if err != nil {
+					log.Panicf("%v\n", err)
+				}
+				So(isSymlink(lstat), ShouldBeTrue)
+
+				target, err := os.Readlink(symlinkPath)
+
+				if err != nil {
+					log.Panicf("%v\n", err)
+				}
+
+				if v == "cc.txt" {
+					So(target, ShouldResemble, "notfound.txt")
+				} else if v == "b.txt" {
+					So(target, ShouldResemble, "a.txt")
+				}
+			}
+
+		})
+	})
+
+}
+
+func _testUnpackingCompressedFile(metaObj *ArchiveMeta, ph *ProgressHandler, destinationFilename string) {
+	Convey("Warm up test compressed file | symlink | It should not throw an error", func() {
+		_destination := newTempMocksDir("symlink_mock_test_file5_compressed", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+		}
+
+		err := StartUnpacking(metaObj, unpackObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("List the archive files", func() {
+			assertionArr := []string{destinationFilename}
+
+			_testListingUnpackedArchive(metaObj, unpackObj, assertionArr, assertionArr)
+		})
+
+		Convey("read the unpacked directory and read the hardlinked symlink file", func() {
+			filesArr := listUnpackedDirectory(_destination)
+			for _, v := range filesArr {
+				if v != destinationFilename {
+					continue
+				}
+
+				text, err := os.ReadFile(path.Join(_destination, v))
+
+				if err != nil {
+					log.Panicf("%v\n", err)
+				}
+
+				So(string(text), ShouldResemble, "abc d efg")
+			}
+
+		})
+
+	})
+
+}
+
+func TestSymlinkUnpacking(t *testing.T) {
+	//if testing.Short() {
+	//	t.Skip("skipping 'TestPacking' testing in short mode")
+	//}
+
+	ph := ProgressHandler{
+		OnReceived: func(pInfo *ProgressInfo) {
+			//fmt.Printf("received: %v\n", pInfo)
+		},
+		OnError: func(err error, pInfo *ProgressInfo) {
+			//fmt.Printf("error: %e\n", err)
+		},
+		OnCompleted: func(pInfo *ProgressInfo) {
+			//elapsed := time.Since(pInfo.StartTime)
+			//
+			//fmt.Println("observable is closed")
+			//fmt.Printf("Time taken to create the archive: %s", elapsed)
+		},
+	}
+
+	Convey("Unpacking | No encryption - ZIP", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename: filename,
+		}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Encrypted - ZIP (StandardEncryption)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_stdenc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.StandardEncryption,
+		}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Encrypted - ZIP (AES128Encryption)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes128enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES128Encryption,
+		}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Encrypted - ZIP (AES256Encryption)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes256enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES256Encryption,
+		}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Encrypted - ZIP (AES192Encryption)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes192enc_pack.zip")
+
+		_metaObj := &ArchiveMeta{
+			Filename:         filename,
+			Password:         "1234567",
+			EncryptionMethod: zip.AES192Encryption,
+		}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.gz", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.gz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.bz2", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.bz2")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.br (brotli)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.br")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.lz4", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.lz4")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.sz", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.sz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.xz", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.xz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking | Tar.zst (zstd)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.zst")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingSymlinkCommonArchives(_metaObj, &ph)
+	})
+
+	Convey("Unpacking compressed file | GZ", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.gz")
+
+		_metaObj := &ArchiveMeta{Filename: filename}
+
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | Zstd", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zst")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | Xz", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.xz")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.sz")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | Lz4", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.lz4")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | Bz2", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.bz2")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
+	})
+
+	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_pack.br")
+		_metaObj := &ArchiveMeta{Filename: filename}
+		_testUnpackingCompressedFile(_metaObj, &ph, "arc_test_pack")
 	})
 }

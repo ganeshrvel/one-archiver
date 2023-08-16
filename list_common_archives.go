@@ -6,6 +6,7 @@ import (
 	"github.com/ganeshrvel/archiver"
 	"github.com/nwaples/rardecode"
 	ignore "github.com/sabhiram/go-gitignore"
+	"os"
 	"path/filepath"
 )
 
@@ -20,7 +21,10 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 
 	arcFileObj, err := archiver.ByExtension(filename)
-
+	if err != nil {
+		return nil, err
+	}
+	arcFileStat, err := os.Lstat(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
@@ -65,7 +69,6 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 			}
 
 		case *rardecode.FileHeader:
-
 			isDir := file.IsDir()
 			fullPath := fixDirSlash(isDir, filepath.ToSlash(file.Name()))
 			name := filepath.Base(fullPath)
@@ -74,7 +77,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
@@ -91,7 +94,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Mode:       file.Mode(),
 				Size:       file.Size(),
 				IsDir:      isDir,
-				ModTime:    file.ModTime(),
+				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),

@@ -41,6 +41,14 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 
 			return list[i].Size < list[j].Size
 		})
+	case OrderByKind:
+		sort.SliceStable(list, func(i, j int) bool {
+			if orderDir == OrderDirDesc {
+				return list[i].Kind() > list[j].Kind()
+			}
+
+			return list[i].Kind() < list[j].Kind()
+		})
 	}
 
 	return list
