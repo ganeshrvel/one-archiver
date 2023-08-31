@@ -89,7 +89,7 @@ func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHan
 	})
 }
 
-func _testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 	Convey("Incorrect Password | common archives - it should not throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
 
@@ -728,7 +728,7 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPassword(_metaObj, &ph)
+		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, &ph)
 	})
 
 	Convey("Wrong password | Archive Unpacking - RAR", t, func() {
@@ -742,7 +742,7 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		filename := getTestMocksAsset("mock_test_file1.tar")
 		_metaObj := &ArchiveMeta{Filename: filename, Password: "wrong"}
 
-		_testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj, &ph)
+		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, &ph)
 	})
 }
 

@@ -86,7 +86,7 @@ type ArchiveReader interface {
 }
 
 type ArchiveUtils interface {
-	isEncrypted() (EncryptedArchiveInfo, error)
+	prepare() (PrepareArchiveInfo, error)
 }
 
 type ArchivePacker interface {
@@ -116,9 +116,10 @@ type extractCommonArchiveFileInfo struct {
 	fi                *archiver.File
 }
 
-type EncryptedArchiveInfo struct {
-	IsEncrypted     bool
-	IsValidPassword bool
+type PrepareArchiveInfo struct {
+	IsValidPassword      bool
+	IsSinglePasswordMode bool
+	IsPasswordRequired   bool
 }
 
 type ProgressInfo struct {

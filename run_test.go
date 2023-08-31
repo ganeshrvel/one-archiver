@@ -8,7 +8,7 @@ func TestRun(t *testing.T) {
 	//start := time.Now()
 
 	//ListArchive()
-	//err, _ := IsArchiveEncrypted()
+	//err, _ := PrepareArchive()
 	//Pack()
 	//Unpack()
 

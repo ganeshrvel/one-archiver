@@ -101,7 +101,7 @@ func StartPacking(meta *ArchiveMeta, pack *ArchivePack, ph *ProgressHandler) err
 
 	var arcPackObj ArchivePacker
 
-	ext := filepath.Ext(_meta.Filename)
+	ext := extension(_meta.Filename)
 
 	if OverwriteExisting && FileExists(_meta.Filename) {
 		if err := os.Remove(_meta.Filename); err != nil {
@@ -110,7 +110,7 @@ func StartPacking(meta *ArchiveMeta, pack *ArchivePack, ph *ProgressHandler) err
 	}
 
 	switch ext {
-	case ".zip":
+	case "zip":
 		arcPackObj = zipArchive{meta: _meta, pack: _pack}
 
 		break

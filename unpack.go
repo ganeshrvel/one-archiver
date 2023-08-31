@@ -78,13 +78,13 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler)
 
 	// check whether the archive is encrypted
 	// if yes, check whether the password is valid
-	iae, err := IsArchiveEncrypted(meta)
+	prepareArchive, err := PrepareArchive(meta)
 
 	if err != nil {
 		return err
 	}
 
-	if iae.IsEncrypted && !iae.IsValidPassword {
+	if prepareArchive.IsPasswordRequired && !prepareArchive.IsValidPassword {
 		return fmt.Errorf(string(ErrorInvalidPassword))
 	}
 

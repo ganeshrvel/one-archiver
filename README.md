@@ -93,7 +93,7 @@ am := &onearchiver.ArchiveMeta{
     Password: "1234567",
 }
 
-result, err := onearchiver.IsArchiveEncrypted(am)
+result, err := onearchiver.PrepareArchive(am)
 
 if err != nil {
     fmt.Printf("Error occured: %+v\n", err)
@@ -101,7 +101,7 @@ if err != nil {
     return
 }
 
-fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted, result.IsValidPassword)
+fmt.Printf("Result; IsPasswordRequired: %v, IsValidPassword: %v, IsSinglePasswordMode: %v\n", result.IsPasswordRequired, result.IsValidPassword, result.IsSinglePasswordMode)
 ```
 
 

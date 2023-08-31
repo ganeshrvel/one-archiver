@@ -15,7 +15,6 @@ import (
 func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 	filename := arc.meta.Filename
 	listDirectoryPath := arc.read.ListDirectoryPath
-	password := arc.meta.Password
 	recursive := arc.read.Recursive
 	orderBy := arc.read.OrderBy
 	orderDir := arc.read.OrderDir
@@ -45,10 +44,6 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 	compiledGitIgnoreLines := ignore.CompileIgnoreLines(ignoreList...)
 
 	for _, file := range reader.File {
-		if password != "" {
-			file.SetPassword(password)
-		}
-
 		fullPath := filepath.ToSlash(file.Name)
 		isDir := file.FileInfo().IsDir()
 		name := file.FileInfo().Name()

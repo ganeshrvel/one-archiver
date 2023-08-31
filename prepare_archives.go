@@ -3,10 +3,7 @@ package onearchiver
 import (
 	"fmt"
 	"github.com/ganeshrvel/archiver"
-	"github.com/ganeshrvel/yeka_zip"
-	"io"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -55,74 +52,26 @@ func isRarArchiveEncrypted(arcValues *archiver.Rar, filename, password string) (
 	return false, nil
 }
 
-func (arc zipArchive) isEncrypted() (EncryptedArchiveInfo, error) {
+func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 	filename := arc.meta.Filename
 	password := arc.meta.Password
 
-	ai := EncryptedArchiveInfo{
-		IsEncrypted:     false,
-		IsValidPassword: false,
-	}
-
-	reader, err := zip.OpenReader(filename)
-	if err != nil {
-		return ai, err
-	}
-	defer func() {
-		if err = reader.Close(); err != nil {
-			fmt.Printf("%v\n", err)
-		}
-	}()
-
-	for _, file := range reader.File {
-		if file.IsEncrypted() {
-			ai.IsEncrypted = true
-
-			file.SetPassword(password)
-
-			r, err := file.Open()
-			if err != nil {
-				return ai, err
-			}
-			defer func() {
-				if err = r.Close(); err != nil {
-					fmt.Printf("%v\n", err)
-				}
-			}()
-
-			_, err = io.ReadAll(r)
-			if err != nil {
-				return ai, nil
-			}
-
-			ai.IsValidPassword = true
-
-			return ai, err
-		}
-	}
-
-	return ai, err
-}
-
-func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
-	filename := arc.meta.Filename
-	password := arc.meta.Password
-
-	ai := EncryptedArchiveInfo{
-		IsEncrypted:     false,
-		IsValidPassword: false,
+	prepArcInf := PrepareArchiveInfo{
+		IsValidPassword:      false,
+		IsSinglePasswordMode: false,
+		IsPasswordRequired:   false,
 	}
 
 	arcFileObj, err := archiver.ByExtension(filename)
 
 	if err != nil {
-		return ai, err
+		return prepArcInf, err
 	}
 
 	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
 
 	if err != nil {
-		return ai, err
+		return prepArcInf, err
 	}
 
 	switch arcValues := arcFileObj.(type) {
@@ -130,54 +79,50 @@ func (arc commonArchive) isEncrypted() (EncryptedArchiveInfo, error) {
 		// check if the rar file is encrypted
 		r1, err := isRarArchiveEncrypted(arcValues, filename, "")
 		if err != nil {
-			return ai, err
+			return prepArcInf, err
 		}
 
 		// check if the password is correct
 		if r1 {
-			ai.IsEncrypted = true
+			prepArcInf.IsPasswordRequired = true
+			prepArcInf.IsSinglePasswordMode = true
 
 			r2, err := isRarArchiveEncrypted(arcValues, filename, password)
-			ai.IsValidPassword = !r2
+			prepArcInf.IsValidPassword = !r2
 
 			if err != nil {
-				return ai, err
+				return prepArcInf, err
 			}
 		}
 
-		return ai, err
+		return prepArcInf, err
 
 	default:
-		return ai, nil
+		return prepArcInf, nil
 	}
 }
 
-func IsArchiveEncrypted(meta *ArchiveMeta) (EncryptedArchiveInfo, error) {
+func PrepareArchive(meta *ArchiveMeta) (PrepareArchiveInfo, error) {
 	_meta := *meta
 
 	var utilsObj ArchiveUtils
 
-	ext := filepath.Ext(_meta.Filename)
+	ext := extension(_meta.Filename)
 
 	switch ext {
-	case ".zip":
-		utilsObj = zipArchive{meta: _meta}
-
-		break
-
-	case ".rar":
+	case "rar":
 		utilsObj = commonArchive{meta: _meta}
 
 		break
-	// todo add 7 zip here
 	default:
-		ai := EncryptedArchiveInfo{
-			IsEncrypted:     false,
-			IsValidPassword: false,
+		ai := PrepareArchiveInfo{
+			IsSinglePasswordMode: false,
+			IsPasswordRequired:   false,
+			IsValidPassword:      false,
 		}
 
 		return ai, nil
 	}
 
-	return utilsObj.isEncrypted()
+	return utilsObj.prepare()
 }

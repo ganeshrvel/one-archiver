@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func ListArchive() {
-	filename := GetDesktopFile("squash-test-assets/huge_file.zip")
+func ListArchive(filename string) {
+	//filename := GetDesktopFile("squash-test-assets/huge_file.zip")
 
 	if exist := FileExists(filename); !exist {
 		fmt.Printf("file does not exist: %s\n", filename)
@@ -18,7 +18,7 @@ func ListArchive() {
 
 	am := &ArchiveMeta{
 		Filename:         filename,
-		Password:         "",
+		Password:         "1234567",
 		GitIgnorePattern: []string{},
 	}
 
@@ -40,7 +40,7 @@ func ListArchive() {
 	//pretty.Println(result)
 }
 
-func IsEncrypted() {
+func TestPrepareArchive() {
 	filename := GetDesktopFile("test.enc.zip")
 	//filename := GetDesktopFile("test.enc.rar")
 
@@ -55,7 +55,7 @@ func IsEncrypted() {
 		Password: "1234567",
 	}
 
-	result, err := IsArchiveEncrypted(am)
+	result, err := PrepareArchive(am)
 
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
@@ -63,7 +63,7 @@ func IsEncrypted() {
 		return
 	}
 
-	fmt.Printf("Result; IsEncrypted: %v, IsValidPassword: %v\n", result.IsEncrypted, result.IsValidPassword)
+	fmt.Printf("Result; IsPasswordRequired: %v, IsValidPassword: %v, IsSinglePasswordMode: %v\n", result.IsPasswordRequired, result.IsValidPassword, result.IsSinglePasswordMode)
 }
 
 func Pack(filename string, fileList []string) {
