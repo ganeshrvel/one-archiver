@@ -31,7 +31,6 @@ func archiveFormat(arcFileObj *interface{}, password string, overwriteExisting b
 		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
 		arcValues.ContinueOnError = continueOnError
 		arcValues.Password = password
-
 		break
 
 	case *archiver.Tar:
@@ -150,7 +149,7 @@ func archiveFormat(arcFileObj *interface{}, password string, overwriteExisting b
 		break
 
 	default:
-		return fmt.Errorf(string(ErrorFormatSupported))
+		return fmt.Errorf(string(ErrorFormatUnSupported))
 	}
 
 	return nil

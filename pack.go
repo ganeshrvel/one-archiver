@@ -31,6 +31,7 @@ func (arc zipArchive) doPack(ph *ProgressHandler) error {
 func (arc commonArchive) doPack(ph *ProgressHandler) error {
 	filename := arc.meta.Filename
 	fileList := arc.pack.FileList
+	password := arc.pack.Password
 
 	arcFileObj, err := archiver.ByExtension(filename)
 
@@ -38,7 +39,7 @@ func (arc commonArchive) doPack(ph *ProgressHandler) error {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, "", OverwriteExisting)
+	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
 
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func (arc commonArchive) doPack(ph *ProgressHandler) error {
 		err = packCompressedFile(&arc, archFileWrite, &fileList, ph)
 
 	default:
-		return fmt.Errorf(string(ErrorFormatSupported))
+		return fmt.Errorf(string(ErrorFormatUnSupported))
 	}
 
 	if err != nil {

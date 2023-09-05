@@ -54,7 +54,7 @@ func isRarArchiveEncrypted(arcValues *archiver.Rar, filename, password string) (
 
 func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 	filename := arc.meta.Filename
-	password := arc.meta.Password
+	pctx := arc.read.passwordContext()
 
 	prepArcInf := PrepareArchiveInfo{
 		IsValidPassword:      false,
@@ -68,7 +68,7 @@ func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 		return prepArcInf, err
 	}
 
-	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
 
 	if err != nil {
 		return prepArcInf, err
@@ -87,7 +87,7 @@ func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 			prepArcInf.IsPasswordRequired = true
 			prepArcInf.IsSinglePasswordMode = true
 
-			r2, err := isRarArchiveEncrypted(arcValues, filename, password)
+			r2, err := isRarArchiveEncrypted(arcValues, filename, pctx.getSinglePassword())
 			prepArcInf.IsValidPassword = !r2
 
 			if err != nil {
@@ -102,7 +102,7 @@ func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 	}
 }
 
-func PrepareArchive(meta *ArchiveMeta) (PrepareArchiveInfo, error) {
+func PrepareArchive(meta *ArchiveMeta, passwords []string) (PrepareArchiveInfo, error) {
 	_meta := *meta
 
 	var utilsObj ArchiveUtils
@@ -111,7 +111,7 @@ func PrepareArchive(meta *ArchiveMeta) (PrepareArchiveInfo, error) {
 
 	switch ext {
 	case "rar":
-		utilsObj = commonArchive{meta: _meta}
+		utilsObj = commonArchive{meta: _meta, read: ArchiveRead{Passwords: passwords}}
 
 		break
 	default:

@@ -11,7 +11,7 @@ func (arc zipArchive) doUnpack(ph *ProgressHandler) error {
 
 func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
 	filename := arc.meta.Filename
-	password := arc.meta.Password
+	pctx := arc.unpack.passwordContext()
 
 	arcFileObj, err := archiver.ByExtension(filename)
 
@@ -19,7 +19,7 @@ func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
 
 	if err != nil {
 		return err
@@ -35,14 +35,13 @@ func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
 
 func (arc compressedFile) doUnpack(ph *ProgressHandler) error {
 	filename := arc.meta.Filename
-	password := arc.meta.Password
-
+	pctx := arc.unpack.passwordContext()
 	arcFileObj, err := archiver.ByExtension(filename)
 	if err != nil {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
 	if err != nil {
 		return err
 	}
@@ -64,7 +63,7 @@ func (arc compressedFile) doUnpack(ph *ProgressHandler) error {
 		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
 
 	default:
-		return fmt.Errorf(string(ErrorFormatSupported))
+		return fmt.Errorf(string(ErrorFormatUnSupported))
 	}
 
 	return nil
@@ -78,7 +77,7 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler)
 
 	// check whether the archive is encrypted
 	// if yes, check whether the password is valid
-	prepareArchive, err := PrepareArchive(meta)
+	prepareArchive, err := PrepareArchive(meta, _pack.Passwords)
 
 	if err != nil {
 		return err
@@ -121,8 +120,13 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler)
 		fallthrough
 	case "tar.gz":
 		fallthrough
-	default:
+	case "tar":
+		fallthrough
+	case "rar":
 		arcUnpackObj = commonArchive{meta: _meta, unpack: _pack}
+
+	default:
+		return fmt.Errorf(string(ErrorFormatUnSupportedUnpack))
 	}
 
 	return arcUnpackObj.doUnpack(ph)

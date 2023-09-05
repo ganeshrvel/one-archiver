@@ -91,18 +91,20 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 	_meta := *meta
 	_read := *read
 
+	pctx := _read.passwordContext()
+
 	var arcObj ArchiveReader
 
 	// check whether the archive is encrypted
 	// if yes, check whether the password is valid
-	prep, err := PrepareArchive(meta)
+	prep, err := PrepareArchive(meta, _read.Passwords)
 	if err != nil {
 		return nil, err
 	}
 
 	/// if an archive requires password(s) to read it and if password field is empty
 	/// then return 'password is required' error
-	if prep.IsPasswordRequired && len(_meta.Password) < 1 {
+	if prep.IsPasswordRequired && !pctx.hasPasswords() {
 		return nil, fmt.Errorf(string(ErrorPasswordRequired))
 	}
 

@@ -108,7 +108,7 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 	return resultPath
 }
 
-func listUnpackedDirectory(destination string) []string {
+func listUnpackedDirectory(destination string) (path []string) {
 	var filePathList []filePathListSortInfo
 
 	err := filepath.Walk(destination, func(path string, info os.FileInfo, err error) error {
@@ -120,6 +120,7 @@ func listUnpackedDirectory(destination string) []string {
 
 		if !info.IsDir() {
 			pathSplitted = [2]string{filepath.Dir(path), filepath.Base(path)}
+
 		} else {
 			path = fixDirSlash(true, path)
 			_dir := filepath.Dir(path)
@@ -151,6 +152,49 @@ func listUnpackedDirectory(destination string) []string {
 	}
 
 	return itemsArr
+}
+
+func getContentsUnpackedDirectory(destination string, fileContents *[]map[string][]byte) {
+	err := filepath.Walk(destination, func(path string, info os.FileInfo, err error) error {
+		if destination == path {
+			return nil
+		}
+
+		_path := strings.Replace(path, destination, "", -1)
+		_path = strings.TrimLeft(_path, "/")
+
+		if isSymlink(info) {
+			return nil
+		}
+
+		if !info.IsDir() {
+			data, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
+
+			for idx, m := range *fileContents {
+				if _, exists := m[_path]; exists {
+					(*fileContents)[idx] = map[string][]byte{_path: data}
+				}
+			}
+
+		} else {
+			path = fixDirSlash(true, path)
+
+			for idx, m := range *fileContents {
+				if _, exists := m[_path]; exists {
+					(*fileContents)[idx] = map[string][]byte{_path: nil}
+				}
+			}
+
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func MatchRegex(input, pattern string) bool {

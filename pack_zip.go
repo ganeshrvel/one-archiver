@@ -10,7 +10,7 @@ import (
 
 func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, ph *ProgressHandler) error {
 	filename := arc.meta.Filename
-	password := arc.meta.Password
+	password := arc.pack.Password
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	encryptionMethod := arc.meta.EncryptionMethod
 

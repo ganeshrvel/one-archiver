@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string) {
+func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string, excludeSizes map[string]int) {
 	Convey("recursive=true | Asc - it should not throw an error", func() {
 		_listObj := &ArchiveRead{
 			ListDirectoryPath: "",
@@ -23,17 +23,81 @@ func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string) {
 
 		for _, item := range result {
 			itemsArr = append(itemsArr, item.FullPath)
+
+			if !item.IsDir {
+
+				if _, exists := excludeSizes[item.FullPath]; exists {
+					continue
+				}
+
+				So(item.Size, ShouldBeGreaterThan, 0)
+			}
+
 		}
 
 		So(itemsArr, ShouldResemble, assertionArr)
+
 	})
 }
 
-func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+func _testPackedArchiveAfterUnpacking(_metaObj *ArchiveMeta, contentsAssertionArr []map[string][]byte, ph *ProgressHandler) {
+
+	_destination := newTempMocksDir("mock_test_file1", true)
+
+	Convey("it should not throw an error", func() {
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+			Passwords:   []string{},
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, ph)
+
+		So(err, ShouldBeNil)
+
+		Convey("Read the extracted directory  - it should not throw an error", func() {
+			if len(contentsAssertionArr) > 0 {
+				contentsArr := make([]map[string][]byte, len(contentsAssertionArr))
+
+				for idx, m := range contentsAssertionArr {
+					for key := range m {
+						contentsArr[idx] = map[string][]byte{key: nil}
+					}
+				}
+
+				getContentsUnpackedDirectory(_destination, &contentsArr)
+
+				Convey("Read contents and match them  - it should not throw an error", func() {
+					So(contentsArr, ShouldResemble, contentsAssertionArr)
+				})
+			}
+		})
+	})
+}
+
+func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler, password string) {
+	Convey("Unpack and test archive", func() {
+
+		contentsAssertionArr := []map[string][]byte{
+			{"a.txt": []byte("abc d efg")},
+			{"1/": nil},
+			{"1/a.txt": []byte("abcdefg\n")},
+			{"2/": nil},
+			{"2/b.txt": []byte("123456")},
+			{"3/": nil},
+			{"3/b.txt": []byte("123456")},
+			{"3/2/": nil},
+			{"3/2/b.txt": []byte("123456")},
+		}
+
+		_testPackedArchiveAfterUnpacking(_metaObj, contentsAssertionArr, ph)
+	})
+
 	Convey("gitIgnorePattern | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1")
 		_packObj := &ArchivePack{
 			FileList: []string{path1},
+			Password: password,
 		}
 
 		_metaObj.GitIgnorePattern = []string{"b.txt"}
@@ -45,7 +109,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/3/", "mock_dir1/3/2/"}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{})
 		})
 	})
 
@@ -62,7 +126,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{})
 		})
 	})
 
@@ -79,7 +143,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -97,7 +161,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt", "mock_dir2/", "mock_dir2/a.txt", "mock_dir2/1/", "mock_dir2/1/a.txt", "mock_dir2/2/", "mock_dir2/2/b.txt", "mock_dir2/3/", "mock_dir2/3/b.txt", "mock_dir2/3/2/", "mock_dir2/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -115,7 +179,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -133,7 +197,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "1/", "1/a.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -152,7 +216,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "1/", "1/a.txt", "2/", "2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -172,7 +236,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "b.txt", "1/", "1/a.txt", "2/", "2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -190,7 +254,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "1/", "1/a.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -208,7 +272,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir2/", "mock_dir2/a.txt", "mock_dir2/1/", "mock_dir2/1/a.txt", "mock_dir2/2/", "mock_dir2/2/b.txt", "mock_dir2/3/", "mock_dir2/3/b.txt", "mock_dir2/3/2/", "mock_dir2/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -226,7 +290,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir2/", "mock_dir2/a.txt", "mock_dir2/1/", "mock_dir2/1/a.txt", "mock_dir2/2/", "mock_dir2/2/b.txt", "mock_dir2/3/", "mock_dir2/3/b.txt", "mock_dir2/3/2/", "mock_dir2/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -244,7 +308,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir3/", "mock_dir3/dir_1/", "mock_dir3/dir_1/a.txt", "mock_dir3/dir_1/1/", "mock_dir3/dir_1/1/a.txt", "mock_dir3/dir_1/2/", "mock_dir3/dir_1/2/b.txt", "mock_dir3/dir_1/3/", "mock_dir3/dir_1/3/b.txt", "mock_dir3/dir_1/3/2/", "mock_dir3/dir_1/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -264,7 +328,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir2/", "mock_dir2/3/", "mock_dir2/3/2/", "mock_dir2/3/2/b.txt", "mock_dir3/", "mock_dir3/dir_1/", "mock_dir3/dir_1/a.txt", "mock_dir3/dir_1/1/", "mock_dir3/dir_1/1/a.txt", "mock_dir3/dir_1/2/", "mock_dir3/dir_1/2/b.txt", "mock_dir3/dir_1/3/", "mock_dir3/dir_1/3/b.txt", "mock_dir3/dir_1/3/2/", "mock_dir3/dir_1/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -284,7 +348,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"mock_dir1/", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir2/", "mock_dir2/3/", "mock_dir2/3/2/", "mock_dir2/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -302,7 +366,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"b.txt", "2/", "2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -320,7 +384,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"b.txt", "2/", "2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -339,7 +403,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -358,7 +422,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionList := []string{"a.txt", "b.txt", "1/", "1/a.txt", "2/", "2/b.txt", "dir_1/", "dir_1/a.txt", "dir_1/1/", "dir_1/1/a.txt", "dir_1/2/", "dir_1/2/b.txt", "dir_1/3/", "dir_1/3/b.txt", "dir_1/3/2/", "dir_1/3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionList)
+			_testListingPackedArchive(_metaObj, assertionList, map[string]int{})
 		})
 	})
 
@@ -374,7 +438,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionArr := []string(nil)
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{})
 		})
 	})
 
@@ -391,7 +455,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionArr := []string{"a.txt", "b.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{"b.txt": 0})
 		})
 	})
 
@@ -408,7 +472,7 @@ func _testPacking(_metaObj *ArchiveMeta, ph *ProgressHandler) {
 		Convey("List Packed Archive files", func() {
 			assertionArr := []string{"a.txt", "b.txt", "cc.txt", "1/", "1/a.txt", "2/", "2/b.txt", "3/", "3/b.txt", "3/2/", "3/2/b.txt"}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{"b.txt": 0, "cc.txt": 0})
 		})
 	})
 }
@@ -428,7 +492,17 @@ func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, pack
 		Convey("List Packed compressed file", func() {
 			assertionArr := []string{packedFileName}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{packedFileName: 0})
+
+		})
+
+		Convey("Unpack the compressed file and test", func() {
+
+			contentsAssertionArr := []map[string][]byte{
+				{packedFileName: []byte("abc d efg")},
+			}
+
+			_testPackedArchiveAfterUnpacking(_metaObj, contentsAssertionArr, ph)
 		})
 	})
 
@@ -447,7 +521,7 @@ func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, pack
 		Convey("List Packed compressed file", func() {
 			assertionArr := []string{packedFileName}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{packedFileName: 0})
 		})
 	})
 
@@ -513,7 +587,7 @@ func _testCompressedFilePacking(_metaObj *ArchiveMeta, ph *ProgressHandler, pack
 		Convey("List Packed compressed files", func() {
 			assertionArr := []string{packedFileName}
 
-			_testListingPackedArchive(_metaObj, assertionArr)
+			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{"b.txt": 0, packedFileName: 0})
 		})
 	})
 
@@ -557,7 +631,7 @@ func TestPacking(t *testing.T) {
 			Filename: filename,
 		}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Encrypted - ZIP (StandardEncryption)", t, func() {
@@ -565,11 +639,10 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{
 			Filename:         filename,
-			Password:         "1234567",
 			EncryptionMethod: zip.StandardEncryption,
 		}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "1234567")
 	})
 
 	Convey("Packing | Encrypted - ZIP (AES128Encryption)", t, func() {
@@ -577,11 +650,10 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{
 			Filename:         filename,
-			Password:         "1234567",
 			EncryptionMethod: zip.AES128Encryption,
 		}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "1234567")
 	})
 
 	Convey("Packing | Encrypted - ZIP (AES256Encryption)", t, func() {
@@ -589,11 +661,10 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{
 			Filename:         filename,
-			Password:         "1234567",
 			EncryptionMethod: zip.AES256Encryption,
 		}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "1234567")
 	})
 
 	Convey("Packing | Encrypted - ZIP (AES192Encryption)", t, func() {
@@ -601,11 +672,10 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{
 			Filename:         filename,
-			Password:         "1234567",
 			EncryptionMethod: zip.AES192Encryption,
 		}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "1234567")
 	})
 
 	Convey("Packing | Tar", t, func() {
@@ -613,7 +683,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.gz", t, func() {
@@ -621,7 +691,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.bz2", t, func() {
@@ -629,7 +699,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.br (brotli)", t, func() {
@@ -637,7 +707,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.lz4", t, func() {
@@ -645,7 +715,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.sz", t, func() {
@@ -653,7 +723,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.xz", t, func() {
@@ -661,7 +731,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing | Tar.zst (zstd)", t, func() {
@@ -669,7 +739,7 @@ func TestPacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testPacking(_metaObj, &ph)
+		_testPacking(_metaObj, &ph, "")
 	})
 
 	Convey("Packing compressed file | GZ", t, func() {

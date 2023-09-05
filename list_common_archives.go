@@ -13,7 +13,7 @@ import (
 // List files in the common archives
 func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 	filename := arc.meta.Filename
-	password := arc.meta.Password
+	pctx := arc.read.passwordContext()
 	listDirectoryPath := arc.read.ListDirectoryPath
 	recursive := arc.read.Recursive
 	orderBy := arc.read.OrderBy
@@ -29,7 +29,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 		return nil, err
 	}
 
-	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
 	if err != nil {
 		return nil, err
 	}

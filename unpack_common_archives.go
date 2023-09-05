@@ -33,6 +33,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	commonArchiveFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 
 	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
+
 		var fileInfo ArchiveFileInfo
 
 		switch fileHeader := file.Header.(type) {
@@ -63,21 +64,6 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
 			}
-
-		// not currently being used
-		default:
-			fullPath := filepath.ToSlash(file.FileInfo.Name())
-			isDir := file.IsDir()
-
-			fileInfo = ArchiveFileInfo{
-				Mode:       file.Mode(),
-				Size:       file.Size(),
-				IsDir:      isDir,
-				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
-				Name:       file.Name(),
-				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath),
-			}
 		}
 
 		if allowFileFiltering {
@@ -102,7 +88,6 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 			absFilepath: destinationFileAbsPath,
 			name:        fileInfo.Name,
 			fileInfo:    &fileInfo,
-			fi:          &file,
 			osFileInfo:  &file.FileInfo,
 		}
 
@@ -113,14 +98,32 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	pInfo, ch := initProgress(totalFiles, ph)
 
 	count := 0
-	for absolutePath, file := range commonArchiveFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, absolutePath, count)
+	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
+		var fullPath string
+		switch fileHeader := file.Header.(type) {
+		case *tar.Header:
+			fullPath = filepath.ToSlash(fileHeader.Name)
 
-		if err := addFileFromCommonArchiveToDisk(&file, absolutePath); err != nil {
+		case *rardecode.FileHeader:
+			isDir := file.IsDir()
+			fullPath = fixDirSlash(isDir, filepath.ToSlash(file.Name()))
+		}
+
+		destinationFileAbsPath := filepath.Join(destinationPath, fullPath)
+		arcFileObj, exists := commonArchiveFilePathListMap[destinationFileAbsPath]
+		if !exists {
+			return nil
+		}
+
+		count += 1
+		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
+
+		if err := addFileFromCommonArchiveToDisk(&arcFileObj, &file, destinationFileAbsPath); err != nil {
 			return err
 		}
-	}
+
+		return nil
+	})
 
 	pInfo.endProgress(ch, totalFiles)
 
@@ -133,9 +136,9 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	return err
 }
 
-func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinationFileAbsPath string) error {
-	_file := *file
-	if _file.fileInfo.IsDir {
+func addFileFromCommonArchiveToDisk(arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string) error {
+	_arcFileObj := *arcFileObj
+	if _arcFileObj.fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
@@ -149,20 +152,20 @@ func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinat
 		}
 	}
 
-	if isSymlink(*_file.osFileInfo) {
+	if isSymlink(*_arcFileObj.osFileInfo) {
 		targetPathBytes := ""
-		switch fileHeader := _file.fi.Header.(type) {
+		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
 			targetPathBytes = fileHeader.Linkname
 		}
 
 		if targetPathBytes == "" {
-			r, err := io.ReadAll(_file.fi.ReadCloser)
+			r, err := io.ReadAll(file.ReadCloser)
 			if err != nil {
 				return err
 			}
 			defer func() {
-				if err := _file.fi.ReadCloser.Close(); err != nil {
+				if err := file.ReadCloser.Close(); err != nil {
 					fmt.Printf("%v\n", err)
 				}
 			}()
@@ -172,10 +175,10 @@ func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinat
 
 		targetPath := filepath.ToSlash(string(targetPathBytes))
 		// todo add a check if continue of error then dont return
-		return os.Symlink(targetPath, _file.absFilepath)
+		return os.Symlink(targetPath, _arcFileObj.absFilepath)
 	}
 
-	w, err := os.OpenFile(destinationFileAbsPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, _file.fileInfo.Mode)
+	w, err := os.OpenFile(destinationFileAbsPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, _arcFileObj.fileInfo.Mode)
 	if err != nil {
 		return err
 	}
@@ -185,16 +188,17 @@ func addFileFromCommonArchiveToDisk(file *extractCommonArchiveFileInfo, destinat
 		}
 	}()
 
-	// todo add a check if continue of error then dont return
-	numBytesWritten, err := io.Copy(w, _file.fi.ReadCloser)
-	if err != nil && !(numBytesWritten == _file.fileInfo.Size && err == io.EOF) {
-		return err
-	}
 	defer func() {
-		if err := _file.fi.ReadCloser.Close(); err != nil {
+		if err := file.ReadCloser.Close(); err != nil {
 			fmt.Printf("%v\n", err)
 		}
 	}()
+
+	// todo add a check if continue of error then dont return
+	numBytesWritten, err := io.Copy(w, file.ReadCloser)
+	if err != nil && !(numBytesWritten == _arcFileObj.fileInfo.Size && err == io.EOF) {
+		return err
+	}
 
 	return nil
 }

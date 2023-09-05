@@ -11,10 +11,11 @@ import (
 
 func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	sourceFilepath := arc.meta.Filename
-	password := arc.meta.Password
 	destinationPath := arc.unpack.Destination
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	fileList := arc.unpack.FileList
+
+	pctx := arc.unpack.passwordContext()
 
 	allowFileFiltering := len(fileList) > 0
 
@@ -36,10 +37,6 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	zipFilePathListMap := make(map[string]extractZipFileInfo)
 
 	for _, file := range sourceReader.File {
-		if file.IsEncrypted() {
-			file.SetPassword(password)
-		}
-
 		fileName := filepath.ToSlash(file.Name)
 		fileInfo := file.FileInfo()
 
@@ -77,7 +74,7 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 		count += 1
 		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
 
-		if err := addFileFromZipToDisk(file.zipFileInfo, destinationFileAbsPath); err != nil {
+		if err := makeAddFileFromZipToDisk(file.zipFileInfo, destinationFileAbsPath, &pctx); err != nil {
 			return err
 		}
 	}
@@ -93,8 +90,37 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	return nil
 }
 
-func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
-	fileToExtract, err := file.Open()
+func makeAddFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, pctx *PasswordContext) error {
+	isEncrypted := zipFileInfo.IsEncrypted()
+
+	if !isEncrypted {
+		return addFileFromZipToDisk(zipFileInfo, destinationFileAbsPath, "")
+	}
+
+	for _, password := range pctx.passwords {
+		err := addFileFromZipToDisk(zipFileInfo, destinationFileAbsPath, password)
+
+		if err == nil {
+			return nil
+		}
+
+		if err == zip.ErrChecksum {
+			continue
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, password string) error {
+
+	if len(password) > 0 {
+		zipFileInfo.SetPassword(password)
+	}
+
+	fileToExtract, err := zipFileInfo.Open()
 	if err != nil {
 		return err
 	}
@@ -104,7 +130,7 @@ func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 		}
 	}()
 
-	if file.FileInfo().IsDir() {
+	if zipFileInfo.FileInfo().IsDir() {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
@@ -118,7 +144,7 @@ func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 		}
 	}
 
-	if isSymlink(file.FileInfo()) {
+	if isSymlink(zipFileInfo.FileInfo()) {
 		targetBytes, err := io.ReadAll(fileToExtract)
 		if err != nil {
 			return err
@@ -126,8 +152,13 @@ func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 
 		targetPath := filepath.ToSlash(string(targetBytes))
 
+		err = os.Symlink(targetPath, destinationFileAbsPath)
+
+		if err == zip.ErrChecksum {
+			return err
+		}
 		// todo add a check if continue of error then dont return
-		return os.Symlink(targetPath, destinationFileAbsPath)
+		return err
 	}
 
 	writer, err := os.Create(destinationFileAbsPath)
@@ -136,7 +167,10 @@ func addFileFromZipToDisk(file *zip.File, destinationFileAbsPath string) error {
 	}
 
 	// todo add a check if continue of error then dont return
-	_, _ = io.Copy(writer, fileToExtract)
+	_, err = io.Copy(writer, fileToExtract)
+	if err == zip.ErrChecksum {
+		return err
+	}
 
 	return err
 }

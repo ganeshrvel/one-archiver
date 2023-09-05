@@ -1,7 +1,6 @@
 package onearchiver
 
 import (
-	"github.com/ganeshrvel/archiver"
 	"github.com/ganeshrvel/yeka_zip"
 	"os"
 	"time"
@@ -26,25 +25,35 @@ func (fi ArchiveFileInfo) Kind() string {
 
 type ArchiveMeta struct {
 	Filename         string
-	Password         string
 	GitIgnorePattern []string
 	EncryptionMethod zip.EncryptionMethod
 }
 
 type ArchiveRead struct {
+	Passwords         []string
 	ListDirectoryPath string
 	OrderBy           ArchiveOrderBy
 	OrderDir          ArchiveOrderDir
 	Recursive         bool
 }
 
+func (ar *ArchiveRead) passwordContext() PasswordContext {
+	return PasswordContext{passwords: ar.Passwords}
+}
+
 type ArchivePack struct {
+	Password string
 	FileList []string
 }
 
 type ArchiveUnpack struct {
+	Passwords   []string
 	FileList    []string
 	Destination string
+}
+
+func (au *ArchiveUnpack) passwordContext() PasswordContext {
+	return PasswordContext{passwords: au.Passwords}
 }
 
 type filePathListSortInfo struct {
@@ -113,7 +122,6 @@ type extractCommonArchiveFileInfo struct {
 	absFilepath, name string
 	fileInfo          *ArchiveFileInfo
 	osFileInfo        *os.FileInfo
-	fi                *archiver.File
 }
 
 type PrepareArchiveInfo struct {
