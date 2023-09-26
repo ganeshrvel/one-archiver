@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor interface{ archiver.Decompressor }, ph *ProgressHandler) error {
+func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFileDecompressor interface{ archiver.Decompressor }) error {
 	fileList := arc.unpack.FileList
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	destinationPath := arc.unpack.Destination
@@ -21,7 +21,7 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 
 	allowFileFiltering := len(fileList) > 0
 
-	fiList, err := GetArchiveFileList(&arc.meta, &arc.read)
+	compressedFileList, err := GetArchiveFileList(&arc.meta, &arc.read)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,8 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 		return err
 	}
 
-	for _, file := range fiList {
+	progressMetrices := newArchiveProgressMetrices[extractCommonArchiveFileInfo]()
+	for _, file := range compressedFileList {
 		var fileInfo ArchiveFileInfo
 
 		fullPath := filepath.ToSlash(file.Name)
@@ -66,6 +67,7 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 		}
 		destinationFileAbsPath := filepath.Join(destinationPath, fileInfo.FullPath)
 
+		progressMetrices.updateArchiveProgressMetrices(compressedFilePathListMap, destinationFileAbsPath, fileInfo.Size, fileInfo.IsDir)
 		compressedFilePathListMap[destinationFileAbsPath] = extractCommonArchiveFileInfo{
 			absFilepath: destinationFileAbsPath,
 			name:        fileInfo.Name,
@@ -73,20 +75,25 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 		}
 	}
 
-	totalFiles := len(compressedFilePathListMap)
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
 	for destinationFileAbsPath, file := range compressedFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
 
-		if err := addFileFromCompressedFileToDisk(&arcFileDecompressor, file.fileInfo, destinationFileAbsPath, sourceFilepath); err != nil {
+		progressMetrices.updateArchiveFilesProgressCount(file.fileInfo.IsDir)
+		session.enableCtxCancel()
+		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
+
+		if err := addFileFromCompressedFileToDisk(session, &arcFileDecompressor, file.fileInfo, destinationFileAbsPath, sourceFilepath); err != nil {
 			return err
 		}
 	}
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
@@ -97,7 +104,8 @@ func startUnpackingCompressedFiles(arc compressedFile, arcFileDecompressor inter
 	return err
 }
 
-func addFileFromCompressedFileToDisk(arcFileDecompressor *interface{ archiver.Decompressor }, fileInfo *ArchiveFileInfo, destinationFileAbsPath, sourceFilepath string) error {
+// todo add progress intruption ctxcopy
+func addFileFromCompressedFileToDisk(session *Session, arcFileDecompressor *interface{ archiver.Decompressor }, fileInfo *ArchiveFileInfo, destinationFileAbsPath, sourceFilepath string) error {
 	if fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
@@ -132,6 +140,7 @@ func addFileFromCompressedFileToDisk(arcFileDecompressor *interface{ archiver.De
 		}
 	}()
 
+	// todo implement progress.sizeProgress and CtxCopy
 	err = (*arcFileDecompressor).Decompress(reader, writer)
 	// todo add a check if continue of error then dont return
 	if err != nil {

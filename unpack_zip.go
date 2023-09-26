@@ -1,15 +1,17 @@
 package onearchiver
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ganeshrvel/yeka_zip"
 	ignore "github.com/sabhiram/go-gitignore"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
+func startUnpackingZip(session *Session, arc zipArchive) error {
 	sourceFilepath := arc.meta.Filename
 	destinationPath := arc.unpack.Destination
 	gitIgnorePattern := arc.meta.GitIgnorePattern
@@ -36,6 +38,8 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
 	zipFilePathListMap := make(map[string]extractZipFileInfo)
 
+	progressMetrices := newArchiveProgressMetrices[extractZipFileInfo]()
+
 	for _, file := range sourceReader.File {
 		fileName := filepath.ToSlash(file.Name)
 		fileInfo := file.FileInfo()
@@ -58,6 +62,7 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 
 		destinationFileAbsPath := filepath.Join(destinationPath, fileName)
 
+		progressMetrices.updateArchiveProgressMetrices(zipFilePathListMap, destinationFileAbsPath, fileInfo.Size(), fileInfo.IsDir())
 		zipFilePathListMap[destinationFileAbsPath] = extractZipFileInfo{
 			absFilepath: destinationFileAbsPath,
 			name:        fileName,
@@ -66,20 +71,25 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 		}
 	}
 
-	totalFiles := len(sourceReader.File)
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
 	for destinationFileAbsPath, file := range zipFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
 
-		if err := makeAddFileFromZipToDisk(file.zipFileInfo, destinationFileAbsPath, &pctx); err != nil {
+		progressMetrices.updateArchiveFilesProgressCount(file.zipFileInfo.FileInfo().IsDir())
+		session.enableCtxCancel()
+		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
+
+		if err := makeAddFileFromZipToDisk(session, file.zipFileInfo, destinationFileAbsPath, pctx); err != nil {
 			return err
 		}
 	}
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
@@ -90,21 +100,21 @@ func startUnpackingZip(arc zipArchive, ph *ProgressHandler) error {
 	return nil
 }
 
-func makeAddFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, pctx *PasswordContext) error {
-	isEncrypted := zipFileInfo.IsEncrypted()
+func makeAddFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, destinationFileAbsPath string, pctx *PasswordContext) error {
+	isEncrypted := zippedFileToExtractInfo.IsEncrypted()
 
 	if !isEncrypted {
-		return addFileFromZipToDisk(zipFileInfo, destinationFileAbsPath, "")
+		return addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, "")
 	}
 
 	for _, password := range pctx.passwords {
-		err := addFileFromZipToDisk(zipFileInfo, destinationFileAbsPath, password)
+		err := addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, password)
 
 		if err == nil {
 			return nil
 		}
 
-		if err == zip.ErrChecksum {
+		if strings.Contains(err.Error(), string(ErrorInvalidPassword)) {
 			continue
 		}
 
@@ -114,13 +124,12 @@ func makeAddFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath stri
 	return nil
 }
 
-func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, password string) error {
-
+func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, destinationFileAbsPath string, password string) error {
 	if len(password) > 0 {
-		zipFileInfo.SetPassword(password)
+		zippedFileToExtractInfo.SetPassword(password)
 	}
 
-	fileToExtract, err := zipFileInfo.Open()
+	fileToExtract, err := zippedFileToExtractInfo.Open()
 	if err != nil {
 		return err
 	}
@@ -130,7 +139,7 @@ func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, 
 		}
 	}()
 
-	if zipFileInfo.FileInfo().IsDir() {
+	if zippedFileToExtractInfo.FileInfo().IsDir() {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
 		}
@@ -144,7 +153,7 @@ func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, 
 		}
 	}
 
-	if isSymlink(zipFileInfo.FileInfo()) {
+	if isSymlink(zippedFileToExtractInfo.FileInfo()) {
 		targetBytes, err := io.ReadAll(fileToExtract)
 		if err != nil {
 			return err
@@ -153,12 +162,18 @@ func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, 
 		targetPath := filepath.ToSlash(string(targetBytes))
 
 		err = os.Symlink(targetPath, destinationFileAbsPath)
-
-		if err == zip.ErrChecksum {
+		if errors.Is(err, zip.ErrChecksum) {
+			return fmt.Errorf(string(ErrorInvalidPassword))
+		}
+		if err != nil {
 			return err
 		}
+
+		targetPathSize := int64(len(targetPath))
+		session.sizeProgress(targetPathSize, targetPathSize)
+
 		// todo add a check if continue of error then dont return
-		return err
+		return nil
 	}
 
 	writer, err := os.Create(destinationFileAbsPath)
@@ -167,10 +182,17 @@ func addFileFromZipToDisk(zipFileInfo *zip.File, destinationFileAbsPath string, 
 	}
 
 	// todo add a check if continue of error then dont return
-	_, err = io.Copy(writer, fileToExtract)
-	if err == zip.ErrChecksum {
+	// todo here since multiple password checking is there we should subtract the bytesTransferred in the previous loop until the full file is written
+	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToExtract, func(bytesTransferred int64) {
+		session.sizeProgress(zippedFileToExtractInfo.FileInfo().Size(), bytesTransferred)
+	})
+	if errors.Is(err, zip.ErrChecksum) {
+		return fmt.Errorf(string(ErrorInvalidPassword))
+	}
+
+	if err != nil && !(numBytesWritten == zippedFileToExtractInfo.FileInfo().Size() && err == io.EOF) {
 		return err
 	}
 
-	return err
+	return nil
 }

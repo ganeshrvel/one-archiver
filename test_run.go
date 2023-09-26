@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ganeshrvel/yeka_zip"
 	"github.com/kr/pretty"
-	"time"
 )
 
 func ListArchive(filename string) []ArchiveFileInfo {
@@ -67,7 +66,7 @@ func TestPrepareArchive() {
 	fmt.Printf("Result; IsPasswordRequired: %v, IsValidPassword: %v, IsSinglePasswordMode: %v\n", result.IsPasswordRequired, result.IsValidPassword, result.IsSinglePasswordMode)
 }
 
-func Pack(filename string, fileList []string) {
+func Pack(filename string, fileList []string, session *Session) {
 	am := &ArchiveMeta{
 		Filename:         filename,
 		GitIgnorePattern: []string{},
@@ -79,22 +78,7 @@ func Pack(filename string, fileList []string) {
 		Password: "",
 	}
 
-	ph := &ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			fmt.Printf("received: %v\n", pInfo)
-		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.StartTime)
-
-			fmt.Println("observable is closed")
-			fmt.Printf("Time taken to create the archive: %s", elapsed)
-		},
-	}
-
-	err := StartPacking(am, ap, ph)
+	err := StartPacking(am, ap, session)
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
 
@@ -104,7 +88,7 @@ func Pack(filename string, fileList []string) {
 	fmt.Printf("Result: %+v\n", "Success")
 }
 
-func Unpack(filename, tempDir string) {
+func Unpack(filename, tempDir string, session *Session) {
 	//filename := getTestMocksAsset("mock_test_file1.zip")
 	//tempDir := newTempMocksDir("arc_test_pack/", false)
 
@@ -121,22 +105,7 @@ func Unpack(filename, tempDir string) {
 		Destination: tempDir,
 	}
 
-	ph := &ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			fmt.Printf("received: %v\n", pInfo)
-		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			elapsed := time.Since(pInfo.StartTime)
-
-			fmt.Println("observable is closed")
-			fmt.Printf("Time taken to unpack the archive: %s", elapsed)
-		},
-	}
-
-	err := StartUnpacking(am, au, ph)
+	err := StartUnpacking(am, au, session)
 	if err != nil {
 		fmt.Printf("Error occured: %+v\n", err)
 

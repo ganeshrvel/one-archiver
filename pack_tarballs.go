@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func packTarballs(arc *commonArchive, arcFileObj interface{ archiver.Writer }, fileList *[]string, commonParentPath string, ph *ProgressHandler) error {
+func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ archiver.Writer }, fileList *[]string, commonParentPath string) error {
 	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 
@@ -31,29 +31,35 @@ func packTarballs(arc *commonArchive, arcFileObj interface{ archiver.Writer }, f
 
 	zipFilePathListMap := make(map[string]createArchiveFileInfo)
 
-	err = processFilesForPackingArchives(&zipFilePathListMap, fileList, commonParentPath, &gitIgnorePattern)
+	progressMetrices, err := processFilesForPackingArchives(&zipFilePathListMap, fileList, commonParentPath, &gitIgnorePattern)
 	if err != nil {
 		return err
 	}
 
-	totalFiles := len(zipFilePathListMap)
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
 	for absolutePath, item := range zipFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, absolutePath, count)
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
+
+		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
+		session.enableCtxCancel()
+		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
 
 		if err := addFileToTarBall(&arcFileObj, *item.fileInfo, item.absFilepath, item.relativeFilePath, item.isDir); err != nil {
 			return err
 		}
 	}
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	return err
 }
 
+// todo add progress intruption ctxcopy
 func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.FileInfo, sourceFilename string, relativeSourceFilename string, isDir bool) error {
 	_arcFileObj := *arcFileObj
 

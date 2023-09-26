@@ -37,8 +37,8 @@ type ArchiveRead struct {
 	Recursive         bool
 }
 
-func (ar *ArchiveRead) passwordContext() PasswordContext {
-	return PasswordContext{passwords: ar.Passwords}
+func (ar *ArchiveRead) passwordContext() *PasswordContext {
+	return &PasswordContext{passwords: ar.Passwords}
 }
 
 type ArchivePack struct {
@@ -52,8 +52,8 @@ type ArchiveUnpack struct {
 	Destination string
 }
 
-func (au *ArchiveUnpack) passwordContext() PasswordContext {
-	return PasswordContext{passwords: au.Passwords}
+func (au *ArchiveUnpack) passwordContext() *PasswordContext {
+	return &PasswordContext{passwords: au.Passwords}
 }
 
 type filePathListSortInfo struct {
@@ -99,11 +99,11 @@ type ArchiveUtils interface {
 }
 
 type ArchivePacker interface {
-	doPack(ph *ProgressHandler) error
+	doPack(session *Session) error
 }
 
 type ArchiveUnpacker interface {
-	doUnpack(ph *ProgressHandler) error
+	doUnpack(session *Session) error
 }
 
 type createArchiveFileInfo struct {
@@ -120,27 +120,17 @@ type extractZipFileInfo struct {
 
 type extractCommonArchiveFileInfo struct {
 	absFilepath, name string
-	fileInfo          *ArchiveFileInfo
-	osFileInfo        *os.FileInfo
+
+	// Formatted values
+	fileInfo *ArchiveFileInfo
+
+	// File provides methods for accessing information about
+	// or contents of a file within an archive.
+	sourceArchiveFileInfo *os.FileInfo
 }
 
 type PrepareArchiveInfo struct {
 	IsValidPassword      bool
 	IsSinglePasswordMode bool
 	IsPasswordRequired   bool
-}
-
-type ProgressInfo struct {
-	StartTime          time.Time
-	TotalFiles         int
-	ProgressCount      int
-	CurrentFilename    string
-	ProgressPercentage float32
-	lastSentTime       time.Time
-}
-
-type ProgressHandler struct {
-	OnReceived  func(*ProgressInfo)
-	OnError     func(error, *ProgressInfo)
-	OnCompleted func(*ProgressInfo)
 }

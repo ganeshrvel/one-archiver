@@ -61,7 +61,7 @@ func _testListingUnpackedArchive(metaObj *ArchiveMeta, unpackObj *ArchiveUnpack,
 	})
 }
 
-func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, session *Session) {
 	Convey("Incorrect Password - it should throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
 
@@ -71,7 +71,7 @@ func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHan
 			Passwords:   []string{"wrongpassword"},
 		}
 
-		err := StartUnpacking(_metaObj, unpackObj, ph)
+		err := StartUnpacking(_metaObj, unpackObj, session)
 
 		So(err, ShouldBeError)
 		So(err.Error(), ShouldContainSubstring, "invalid password")
@@ -85,7 +85,7 @@ func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHan
 			Destination: _destination,
 		}
 
-		err := StartUnpacking(_metaObj, unpackObj, ph)
+		err := StartUnpacking(_metaObj, unpackObj, session)
 
 		So(err, ShouldBeError)
 		So(err.Error(), ShouldContainSubstring, "invalid password")
@@ -100,13 +100,13 @@ func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, ph *ProgressHan
 			Passwords:   []string{"1234567"},
 		}
 
-		err := StartUnpacking(_metaObj, unpackObj, ph)
+		err := StartUnpacking(_metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 	})
 }
 
-func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMeta, ph *ProgressHandler) {
+func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMeta, session *Session) {
 	Convey("Incorrect Password | common archives - it should not throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
 
@@ -116,13 +116,13 @@ func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveM
 			Passwords:   []string{"wrong"},
 		}
 
-		err := StartUnpacking(_metaObj, unpackObj, ph)
+		err := StartUnpacking(_metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 	})
 }
 
-func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, passwords []string) {
+func _testUnpackingCommonArchives(metaObj *ArchiveMeta, session *Session, passwords []string) {
 	Convey("Warm up test | It should not throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
 
@@ -132,7 +132,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 			Passwords:   passwords,
 		}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -167,7 +167,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{"a.txt"}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -191,7 +191,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{"a.txt"}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -213,7 +213,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -236,7 +236,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -259,7 +259,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -282,7 +282,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -305,7 +305,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -327,7 +327,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -351,7 +351,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -375,7 +375,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -399,7 +399,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -423,7 +423,7 @@ func _testUnpackingCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, pas
 
 		metaObj.GitIgnorePattern = []string{"mock_dir1/3"}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -484,7 +484,7 @@ func _testListingUnpackedCompressedFiles(metaObj *ArchiveMeta, unpackObj *Archiv
 	})
 }
 
-func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, destinationFilename string, passwords []string) {
+func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, session *Session, destinationFilename string, passwords []string) {
 
 	Convey("Warm up test | It should not throw an error", func() {
 		_destination := newTempMocksDir(filepath.Join("mock_test_file1", filepath.Base(metaObj.Filename)), true)
@@ -495,7 +495,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 			Passwords:   passwords,
 		}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -522,7 +522,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -545,7 +545,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 
 		metaObj.GitIgnorePattern = []string{destinationFilename}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -566,7 +566,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 
 		metaObj.GitIgnorePattern = []string{destinationFilename}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -587,7 +587,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -609,7 +609,7 @@ func _testUnpackingCompressedFiles(metaObj *ArchiveMeta, ph *ProgressHandler, de
 
 		metaObj.GitIgnorePattern = []string{}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -627,20 +627,18 @@ func TestUnpacking(t *testing.T) {
 	//	t.Skip("skipping 'TestUnpacking' testing in short mode")
 	//}
 
-	ph := ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			//fmt.Printf("received: %v\n", pInfo)
+	ph := &ProgressFunc{
+		OnReceived: func(progress *Progress) {
+			//fmt.Printf("received: %v\n", progress)
 		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			//fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.StartTime)
-			//
-			//fmt.Println("observable is closed")
-			//fmt.Printf("Time taken to unpack the archive: %s", elapsed)
+		OnCompleted: func(progress *Progress) {
+			//elapsed := time.Since(progress.StartTime)
+
+			//fmt.Printf("Time taken to create the archive: %s", elapsed)
 		},
 	}
+
+	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
 
 	Convey("Unpacking | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
@@ -648,7 +646,7 @@ func TestUnpacking(t *testing.T) {
 		metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Encryption - ZIP", t, func() {
@@ -657,7 +655,7 @@ func TestUnpacking(t *testing.T) {
 		metaObj := &ArchiveMeta{Filename: filename}
 
 		passwords := []string{"1234567"}
-		_testUnpackingCommonArchives(metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows Encryption legacy - ZIP", t, func() {
@@ -666,7 +664,7 @@ func TestUnpacking(t *testing.T) {
 		metaObj := &ArchiveMeta{Filename: filename}
 
 		passwords := []string{"1234567"}
-		_testUnpackingCommonArchives(metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Multiple password Encryption - ZIP", t, func() {
@@ -675,7 +673,7 @@ func TestUnpacking(t *testing.T) {
 		metaObj := &ArchiveMeta{Filename: filename}
 
 		passwords := []string{"1234567", "12345678", "123456789", "1234567890"}
-		_testUnpackingCommonArchives(metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | rar", t, func() {
@@ -684,7 +682,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows encrypted rar", t, func() {
@@ -693,7 +691,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		passwords := []string{"1234567"}
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows file names encrypted rar", t, func() {
@@ -702,7 +700,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		passwords := []string{"1234567"}
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows solid rar", t, func() {
@@ -711,7 +709,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows dict best rar", t, func() {
@@ -720,7 +718,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar", t, func() {
@@ -729,7 +727,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.gz", t, func() {
@@ -738,7 +736,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.bz2", t, func() {
@@ -747,7 +745,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.br (brotli)", t, func() {
@@ -756,7 +754,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.lz4", t, func() {
@@ -765,7 +763,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.sz", t, func() {
@@ -774,7 +772,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.xz", t, func() {
@@ -783,7 +781,7 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar.zst (zstd)", t, func() {
@@ -792,99 +790,97 @@ func TestUnpacking(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testUnpackingCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingCommonArchives(_metaObj, session, passwords)
 	})
 	Convey("Unpacking compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zst")
 
 		metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingCompressedFiles(metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(metaObj, session, "mock_test_file1", []string{})
 	})
 	Convey("Unpacking compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.a.txt.gz")
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1.a.txt", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1.a.txt", []string{})
 	})
 
 	Convey("Unpacking compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zst")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 
 	Convey("Unpacking compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.xz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 
 	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.sz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 
 	Convey("Unpacking compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.lz4")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 
 	Convey("Unpacking compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.bz2")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 
 	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.br")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingCompressedFiles(_metaObj, &ph, "mock_test_file1", []string{})
+		_testUnpackingCompressedFiles(_metaObj, session, "mock_test_file1", []string{})
 	})
 }
 
 func TestArchiveUnpackingPassword(t *testing.T) {
-	ph := ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			//fmt.Printf("received: %v\n", pInfo)
+	ph := &ProgressFunc{
+		OnReceived: func(progress *Progress) {
+			//fmt.Printf("received: %v\n", progress)
 		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			//fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.StartTime)
-			//
-			//fmt.Println("observable is closed")
-			//fmt.Printf("Time taken to unpack the archive: %s", elapsed)
+		OnCompleted: func(progress *Progress) {
+			//elapsed := time.Since(progress.StartTime)
+
+			//fmt.Printf("Time taken to create the archive: %s", elapsed)
 		},
 	}
+
+	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
 
 	Convey("Wrong password | Archive Unpacking - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, &ph)
+		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, session)
 	})
 
 	Convey("Wrong password | Archive Unpacking - RAR", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPassword(_metaObj, &ph)
+		_testArchiveUnpackingInvalidPassword(_metaObj, session)
 	})
 
 	Convey("Wrong password | Archive Unpacking - Common Archives", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, &ph)
+		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, session)
 	})
 }
 
-func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, passwords []string) {
+func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, session *Session, passwords []string) {
 	Convey("Warm up test CommonArchives | symlink | It should not throw an error", func() {
 		_destination := newTempMocksDir("symlink_mock_test_file5", true)
 
@@ -894,7 +890,7 @@ func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandl
 			Passwords:   passwords,
 		}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -936,7 +932,7 @@ func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandl
 
 }
 
-func _testUnpackingSymlinkCompressedFile(metaObj *ArchiveMeta, ph *ProgressHandler, destinationFilename string, passwords []string) {
+func _testUnpackingSymlinkCompressedFile(metaObj *ArchiveMeta, session *Session, destinationFilename string, passwords []string) {
 	Convey("Warm up test compressed file | symlink | It should not throw an error", func() {
 		_destination := newTempMocksDir("symlink_mock_test_file5_compressed", true)
 
@@ -945,7 +941,7 @@ func _testUnpackingSymlinkCompressedFile(metaObj *ArchiveMeta, ph *ProgressHandl
 			Destination: _destination,
 		}
 
-		err := StartUnpacking(metaObj, unpackObj, ph)
+		err := StartUnpacking(metaObj, unpackObj, session)
 
 		So(err, ShouldBeNil)
 
@@ -982,20 +978,18 @@ func TestSymlinkUnpacking(t *testing.T) {
 	//	t.Skip("skipping 'TestPacking' testing in short mode")
 	//}
 
-	ph := ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			//fmt.Printf("received: %v\n", pInfo)
+	ph := &ProgressFunc{
+		OnReceived: func(progress *Progress) {
+			//fmt.Printf("received: %v\n", progress)
 		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			//fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.StartTime)
-			//
-			//fmt.Println("observable is closed")
+		OnCompleted: func(progress *Progress) {
+			//elapsed := time.Since(progress.StartTime)
+
 			//fmt.Printf("Time taken to create the archive: %s", elapsed)
 		},
 	}
+
+	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
 
 	Convey("Unpacking | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zip")
@@ -1004,7 +998,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 			Filename: filename,
 		}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Encrypted - ZIP (StandardEncryption)", t, func() {
@@ -1016,7 +1010,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		}
 
 		passwords := []string{"1234567"}
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Encrypted - ZIP (AES128Encryption)", t, func() {
@@ -1028,7 +1022,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		}
 
 		passwords := []string{"1234567"}
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Encrypted - ZIP (AES256Encryption)", t, func() {
@@ -1040,7 +1034,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		}
 
 		passwords := []string{"1234567"}
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Encrypted - ZIP (AES192Encryption)", t, func() {
@@ -1052,7 +1046,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		}
 
 		passwords := []string{"1234567"}
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, passwords)
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar", t, func() {
@@ -1060,7 +1054,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.gz", t, func() {
@@ -1068,7 +1062,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.bz2", t, func() {
@@ -1076,7 +1070,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.br (brotli)", t, func() {
@@ -1084,7 +1078,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.lz4", t, func() {
@@ -1092,7 +1086,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.sz", t, func() {
@@ -1100,7 +1094,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.xz", t, func() {
@@ -1108,7 +1102,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking | Tar.zst (zstd)", t, func() {
@@ -1116,7 +1110,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, []string{})
 	})
 
 	Convey("Unpacking compressed file | GZ", t, func() {
@@ -1124,42 +1118,42 @@ func TestSymlinkUnpacking(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zst")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.xz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.sz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.lz4")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.bz2")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 
 	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.br")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testUnpackingSymlinkCompressedFile(_metaObj, &ph, "arc_test_pack", []string{})
+		_testUnpackingSymlinkCompressedFile(_metaObj, session, "arc_test_pack", []string{})
 	})
 }

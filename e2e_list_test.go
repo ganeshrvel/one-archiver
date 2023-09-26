@@ -1355,7 +1355,7 @@ func TestArchiveEncryption(t *testing.T) {
 	})
 }
 
-func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler, passwords []string) {
+func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, passwords []string) {
 	Convey("Kind | it should not throw an error", func() {
 		_listObj := &ArchiveRead{
 			ListDirectoryPath: "",
@@ -1383,7 +1383,7 @@ func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, ph *ProgressHandler
 	})
 }
 
-func _testListingCompressedFile(metaObj *ArchiveMeta, ph *ProgressHandler, destinationFilename string) {
+func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string) {
 	Convey("Kind | it should not throw an error", func() {
 		_listObj := &ArchiveRead{
 			ListDirectoryPath: "",
@@ -1418,21 +1418,6 @@ func TestSymlinkListing(t *testing.T) {
 	//	t.Skip("skipping 'TestPacking' testing in short mode")
 	//}
 
-	ph := ProgressHandler{
-		OnReceived: func(pInfo *ProgressInfo) {
-			//fmt.Printf("received: %v\n", pInfo)
-		},
-		OnError: func(err error, pInfo *ProgressInfo) {
-			//fmt.Printf("error: %e\n", err)
-		},
-		OnCompleted: func(pInfo *ProgressInfo) {
-			//elapsed := time.Since(pInfo.StartTime)
-			//
-			//fmt.Println("observable is closed")
-			//fmt.Printf("Time taken to create the archive: %s", elapsed)
-		},
-	}
-
 	Convey("Listing | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zip")
 
@@ -1441,7 +1426,7 @@ func TestSymlinkListing(t *testing.T) {
 		}
 
 		var passwords []string
-		_testListingSymlinkCommonArchives(_metaObj, &ph, passwords)
+		_testListingSymlinkCommonArchives(_metaObj, passwords)
 	})
 
 	Convey("Listing | Encrypted - ZIP (StandardEncryption)", t, func() {
@@ -1452,7 +1437,7 @@ func TestSymlinkListing(t *testing.T) {
 			EncryptionMethod: zip.StandardEncryption,
 		}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Encrypted - ZIP (AES128Encryption)", t, func() {
@@ -1463,7 +1448,7 @@ func TestSymlinkListing(t *testing.T) {
 			EncryptionMethod: zip.AES128Encryption,
 		}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Encrypted - ZIP (AES256Encryption)", t, func() {
@@ -1474,7 +1459,7 @@ func TestSymlinkListing(t *testing.T) {
 			EncryptionMethod: zip.AES256Encryption,
 		}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Encrypted - ZIP (AES192Encryption)", t, func() {
@@ -1485,7 +1470,7 @@ func TestSymlinkListing(t *testing.T) {
 			EncryptionMethod: zip.AES192Encryption,
 		}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar", t, func() {
@@ -1493,7 +1478,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.gz", t, func() {
@@ -1501,7 +1486,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.bz2", t, func() {
@@ -1509,7 +1494,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.br (brotli)", t, func() {
@@ -1517,7 +1502,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.lz4", t, func() {
@@ -1525,7 +1510,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.sz", t, func() {
@@ -1533,7 +1518,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.xz", t, func() {
@@ -1541,7 +1526,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing | Tar.zst (zstd)", t, func() {
@@ -1549,7 +1534,7 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingSymlinkCommonArchives(_metaObj, &ph, []string{})
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
 	Convey("Listing compressed file | GZ", t, func() {
@@ -1557,42 +1542,42 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zst")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.xz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.sz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.lz4")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.bz2")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 
 	Convey("Listing compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.br")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, &ph, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack")
 	})
 }

@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiver.Walker }, ph *ProgressHandler) error {
+func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker interface{ archiver.Walker }) error {
 	sourceFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	fileList := arc.unpack.FileList
@@ -29,11 +29,11 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	ignoreList = append(ignoreList, gitIgnorePattern...)
 
 	ignoreMatches := ignore.CompileIgnoreLines(ignoreList...)
-
 	commonArchiveFilePathListMap := make(map[string]extractCommonArchiveFileInfo)
 
-	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
+	progressMetrices := newArchiveProgressMetrices[extractCommonArchiveFileInfo]()
 
+	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
 		var fileInfo ArchiveFileInfo
 
 		switch fileHeader := file.Header.(type) {
@@ -84,21 +84,26 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 
 		destinationFileAbsPath := filepath.Join(destinationPath, fileInfo.FullPath)
 
+		progressMetrices.updateArchiveProgressMetrices(commonArchiveFilePathListMap, destinationFileAbsPath, fileInfo.Size, fileInfo.IsDir)
 		commonArchiveFilePathListMap[destinationFileAbsPath] = extractCommonArchiveFileInfo{
-			absFilepath: destinationFileAbsPath,
-			name:        fileInfo.Name,
-			fileInfo:    &fileInfo,
-			osFileInfo:  &file.FileInfo,
+			absFilepath:           destinationFileAbsPath,
+			name:                  fileInfo.Name,
+			fileInfo:              &fileInfo,
+			sourceArchiveFileInfo: &file.FileInfo,
 		}
 
 		return nil
 	})
 
-	totalFiles := len(commonArchiveFilePathListMap)
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
 	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
+
 		var fullPath string
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
@@ -115,17 +120,18 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 			return nil
 		}
 
-		count += 1
-		pInfo.progress(ch, totalFiles, destinationFileAbsPath, count)
+		progressMetrices.updateArchiveFilesProgressCount(file.FileInfo.IsDir())
+		session.enableCtxCancel()
+		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
 
-		if err := addFileFromCommonArchiveToDisk(&arcFileObj, &file, destinationFileAbsPath); err != nil {
+		if err := addFileFromCommonArchiveToDisk(session, &arcFileObj, &file, destinationFileAbsPath); err != nil {
 			return err
 		}
 
 		return nil
 	})
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
@@ -136,7 +142,7 @@ func startUnpackingCommonArchives(arc commonArchive, arcWalker interface{ archiv
 	return err
 }
 
-func addFileFromCommonArchiveToDisk(arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string) error {
+func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string) error {
 	_arcFileObj := *arcFileObj
 	if _arcFileObj.fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
@@ -152,7 +158,7 @@ func addFileFromCommonArchiveToDisk(arcFileObj *extractCommonArchiveFileInfo, fi
 		}
 	}
 
-	if isSymlink(*_arcFileObj.osFileInfo) {
+	if isSymlink(*_arcFileObj.sourceArchiveFileInfo) {
 		targetPathBytes := ""
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
@@ -173,17 +179,27 @@ func addFileFromCommonArchiveToDisk(arcFileObj *extractCommonArchiveFileInfo, fi
 			targetPathBytes = string(r)
 		}
 
-		targetPath := filepath.ToSlash(string(targetPathBytes))
+		targetPath := filepath.ToSlash(targetPathBytes)
+
 		// todo add a check if continue of error then dont return
-		return os.Symlink(targetPath, _arcFileObj.absFilepath)
+		err := os.Symlink(targetPath, _arcFileObj.absFilepath)
+		if err != nil {
+			return err
+		}
+
+		targetPathSize := int64(len(targetPath))
+		session.sizeProgress(targetPathSize, targetPathSize)
+
+		// todo add a check if continue of error then dont return
+		return nil
 	}
 
-	w, err := os.OpenFile(destinationFileAbsPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, _arcFileObj.fileInfo.Mode)
+	writer, err := os.OpenFile(destinationFileAbsPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, _arcFileObj.fileInfo.Mode)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		if err := w.Close(); err != nil {
+		if err := writer.Close(); err != nil {
 			fmt.Printf("%v\n", err)
 		}
 	}()
@@ -195,7 +211,9 @@ func addFileFromCommonArchiveToDisk(arcFileObj *extractCommonArchiveFileInfo, fi
 	}()
 
 	// todo add a check if continue of error then dont return
-	numBytesWritten, err := io.Copy(w, file.ReadCloser)
+	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, file.ReadCloser, func(bytesTransferred int64) {
+		session.sizeProgress(_arcFileObj.fileInfo.Size, bytesTransferred)
+	})
 	if err != nil && !(numBytesWritten == _arcFileObj.fileInfo.Size && err == io.EOF) {
 		return err
 	}

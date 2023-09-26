@@ -108,6 +108,40 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 	return resultPath
 }
 
+func testAssetDir(_dirPath string, resetDir bool) string {
+	currentDir, err := os.Getwd()
+
+	if err != nil {
+		log.Panicf("\nunable to fetch the current directory: %s\nerror: %+v\n", currentDir, err)
+	}
+
+	if resetDir {
+		err := os.RemoveAll(_dirPath)
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		if exist := isDirectory(_dirPath); !exist {
+			err = os.MkdirAll(_dirPath, os.ModePerm)
+
+			if err != nil {
+				log.Panicf("\ntest asset Directory not found: %s\nerror: %+v\n", _dirPath, err)
+			}
+		}
+	}
+
+	if exist := isDirectory(_dirPath); !exist {
+		err := os.MkdirAll(_dirPath, os.ModePerm)
+
+		if err != nil {
+			log.Panicf("\ntest asset Directory not found: %s\nerror: %+v\n", _dirPath, err)
+		}
+	}
+
+	return _dirPath
+}
+
 func listUnpackedDirectory(destination string) (path []string) {
 	var filePathList []filePathListSortInfo
 

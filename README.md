@@ -130,17 +130,17 @@ ap := &onearchiver.ArchivePack{
     FileList: []string{path1, path2},
 }
 
-ph := &onearchiver.ProgressHandler{
-    OnReceived: func(pInfo *onearchiver.ProgressInfo) {
-        fmt.Printf("received: %v\n", pInfo)
+ph := &onearchiver.ProgressFunc{
+    OnReceived: func(progress *onearchiver.Progress) {
+        fmt.Printf("received: %v\n", progress)
     },
-    OnError: func(err error, pInfo *onearchiver.ProgressInfo) {
+    OnError: func(err error, progress *onearchiver.Progress) {
         fmt.Printf("error: %e\n", err)
     },
-    OnCompleted: func(pInfo *onearchiver.ProgressInfo) {
-        elapsed := time.Since(pInfo.StartTime)
+    OnCompleted: func(progress *onearchiver.Progress) {
+        elapsed := time.Since(progress.StartTime)
 
-        fmt.Println("observable is closed")
+        
         fmt.Printf("Time taken to create the archive: %s", elapsed)
     },
 }
@@ -179,17 +179,17 @@ au := &onearchiver.ArchiveUnpack{
     Destination: tempDir,
 }
 
-ph := &onearchiver.ProgressHandler{
-    OnReceived: func(pInfo *onearchiver.ProgressInfo) {
-        fmt.Printf("received: %v\n", pInfo)
+ph := &onearchiver.ProgressFunc{
+    OnReceived: func(progress *onearchiver.Progress) {
+        fmt.Printf("received: %v\n", progress)
     },
-    OnError: func(err error, pInfo *onearchiver.ProgressInfo) {
+    OnError: func(err error, progress *onearchiver.Progress) {
         fmt.Printf("error: %e\n", err)
     },
-    OnCompleted: func(pInfo *onearchiver.ProgressInfo) {
-        elapsed := time.Since(pInfo.StartTime)
+    OnCompleted: func(progress *onearchiver.Progress) {
+        elapsed := time.Since(progress.StartTime)
 
-        fmt.Println("observable is closed")
+        
         fmt.Printf("Time taken to unpack the archive: %s", elapsed)
     },
 }

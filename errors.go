@@ -12,4 +12,6 @@ const (
 	ErrorCompressedFileInvalidSize     Errors = "only a single file can be packed to a compressed file"
 	ErrorCompressedFileNoFileFound     Errors = "atleast a single file is required for creating a compress file, check if files are getting ignored by filters"
 	ErrorCompressedFileOnlyFileAllowed Errors = "only a single file be packed to a compressed file, no directories are allowed"
+	ErrorCancelledFileOperation        Errors = "file operation was cancelled"
+	ErrorInternalErrorOccured          Errors = "some internal error occured"
 )

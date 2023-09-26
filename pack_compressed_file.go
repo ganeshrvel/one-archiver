@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func packCompressedFile(arc *commonArchive, arcFileCompressor interface{ archiver.Compressor }, fileList *[]string, ph *ProgressHandler) error {
+func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor interface{ archiver.Compressor }, fileList *[]string) error {
 	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	sourceFilepath := ""
@@ -39,34 +39,39 @@ func packCompressedFile(arc *commonArchive, arcFileCompressor interface{ archive
 	}()
 
 	zipFilePathListMap := make(map[string]createArchiveFileInfo)
-	err = processFilesForPackingCompressedFile(&zipFilePathListMap, sourceFilepath, &gitIgnorePattern)
+	progressMetrices, err := processFilesForPackingCompressedFile(&zipFilePathListMap, sourceFilepath, &gitIgnorePattern)
 	if err != nil {
 		return err
 	}
 
-	totalFiles := len(zipFilePathListMap)
-
-	if totalFiles < 1 {
+	if progressMetrices.totalFiles < 1 {
 		return fmt.Errorf(string(ErrorCompressedFileNoFileFound))
 	}
 
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
 	for absolutePath, item := range zipFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, absolutePath, count)
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
+
+		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
+		session.enableCtxCancel()
+		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
 
 		if err := addFileToCompressedFile(&arcFileCompressor, destinationFileWriter, item.absFilepath); err != nil {
 			return err
 		}
 	}
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	return err
 }
 
+// todo add progress intruption ctxcopy
 func addFileToCompressedFile(arcFileCompressor *interface{ archiver.Compressor }, destinationFileWriter io.Writer, sourceFilepath string) error {
 	_arcFileCompressor := *arcFileCompressor
 

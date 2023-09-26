@@ -5,11 +5,11 @@ import (
 	"github.com/ganeshrvel/archiver"
 )
 
-func (arc zipArchive) doUnpack(ph *ProgressHandler) error {
-	return startUnpackingZip(arc, ph)
+func (arc zipArchive) doUnpack(session *Session) error {
+	return startUnpackingZip(session, arc)
 }
 
-func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
+func (arc commonArchive) doUnpack(session *Session) error {
 	filename := arc.meta.Filename
 	pctx := arc.unpack.passwordContext()
 
@@ -30,10 +30,10 @@ func (arc commonArchive) doUnpack(ph *ProgressHandler) error {
 		return fmt.Errorf(string(ErrorArchiverList))
 	}
 
-	return startUnpackingCommonArchives(arc, arcWalker, ph)
+	return startUnpackingCommonArchives(session, arc, arcWalker)
 }
 
-func (arc compressedFile) doUnpack(ph *ProgressHandler) error {
+func (arc compressedFile) doUnpack(session *Session) error {
 	filename := arc.meta.Filename
 	pctx := arc.unpack.passwordContext()
 	arcFileObj, err := archiver.ByExtension(filename)
@@ -48,19 +48,19 @@ func (arc compressedFile) doUnpack(ph *ProgressHandler) error {
 
 	switch arcFileDecompressor := arcFileObj.(type) {
 	case *archiver.Gz:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Brotli:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Bz2:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Lz4:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Snappy:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Xz:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 	case *archiver.Zstd:
-		err = startUnpackingCompressedFiles(arc, arcFileDecompressor, ph)
+		err = startUnpackingCompressedFiles(session, arc, arcFileDecompressor)
 
 	default:
 		return fmt.Errorf(string(ErrorFormatUnSupported))
@@ -69,7 +69,9 @@ func (arc compressedFile) doUnpack(ph *ProgressHandler) error {
 	return nil
 }
 
-func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler) error {
+// StartUnpacking - Start unpacking
+func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, session *Session) error {
+
 	_meta := *meta
 	_pack := *pack
 
@@ -129,5 +131,5 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, ph *ProgressHandler)
 		return fmt.Errorf(string(ErrorFormatUnSupportedUnpack))
 	}
 
-	return arcUnpackObj.doUnpack(ph)
+	return arcUnpackObj.doUnpack(session)
 }

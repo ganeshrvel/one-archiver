@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, ph *ProgressHandler) error {
+func createZipFile(session *Session, arc *zipArchive, fileList []string, commonParentPath string) error {
 	filename := arc.meta.Filename
 	password := arc.pack.Password
 	gitIgnorePattern := arc.meta.GitIgnorePattern
@@ -37,29 +37,35 @@ func createZipFile(arc *zipArchive, fileList []string, commonParentPath string, 
 
 	zipFilePathListMap := make(map[string]createArchiveFileInfo)
 
-	err = processFilesForPackingArchives(&zipFilePathListMap, &fileList, commonParentPath, &gitIgnorePattern)
+	progressMetrices, err := processFilesForPackingArchives(&zipFilePathListMap, &fileList, commonParentPath, &gitIgnorePattern)
 	if err != nil {
 		return err
 	}
 
-	totalFiles := len(zipFilePathListMap)
-	pInfo, ch := initProgress(totalFiles, ph)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
 
-	count := 0
-	for absolutePath, item := range zipFilePathListMap {
-		count += 1
-		pInfo.progress(ch, totalFiles, absolutePath, count)
+	for destinationFileAbsPath, item := range zipFilePathListMap {
+		select {
+		case <-session.isDone():
+			return session.ctxError()
+		default:
+		}
+
+		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
+		session.enableCtxCancel()
+		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
 
 		if err := addFileToZip(zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
 			return err
 		}
 	}
 
-	pInfo.endProgress(ch, totalFiles)
+	session.endProgress()
 
 	return err
 }
 
+// todo add progress intruption ctxcopy
 func addFileToZip(
 	zipWriter *zip.Writer,
 	fileInfo os.FileInfo,
