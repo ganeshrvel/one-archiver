@@ -36,11 +36,12 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		return err
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
 
 	for absolutePath, item := range zipFilePathListMap {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -54,7 +55,7 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		}
 	}
 
-	session.endProgress()
+	session.endProgress(ProgressStatusCompleted)
 
 	return err
 }
@@ -104,14 +105,7 @@ func addFileToTarBall(session *Session, arcFileObj *interface{ archiver.Writer }
 
 	// todo add a check if continue of error then dont return
 	err := _arcFileObj.WriteBare(af, func(w io.Writer, f archiver.File) (written int64, err error) {
-		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, w, f, fileInfo.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
-			session.sizeProgress(fileInfo.Size(), soFarTransferredSize, lastTransferredSize)
-		})
-		if err != nil && !(numBytesWritten == fileInfo.Size() && err == io.EOF) {
-			return numBytesWritten, err
-		}
-
-		return numBytesWritten, nil
+		return SessionAwareCopy(session, w, f, fileInfo.IsDir(), fileInfo.Size())
 	})
 
 	return err

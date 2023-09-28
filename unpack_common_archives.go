@@ -95,11 +95,12 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 		return nil
 	})
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
 
 	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -131,13 +132,13 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 		return nil
 	})
 
-	session.endProgress()
-
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
 	}
+
+	session.endProgress(ProgressStatusCompleted)
 
 	return err
 }
@@ -210,12 +211,7 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 	}()
 
 	// todo add a check if continue of error then dont return
-	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, file.ReadCloser, _arcFileObj.fileInfo.IsDir, func(soFarTransferredSize, lastTransferredSize int64) {
-		session.sizeProgress(_arcFileObj.fileInfo.Size, soFarTransferredSize, lastTransferredSize)
-	})
-	if err != nil && !(numBytesWritten == _arcFileObj.fileInfo.Size && err == io.EOF) {
-		return err
-	}
+	_, err = SessionAwareCopy(session, writer, file.ReadCloser, _arcFileObj.fileInfo.IsDir, _arcFileObj.fileInfo.Size)
 
-	return nil
+	return err
 }

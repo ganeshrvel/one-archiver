@@ -71,11 +71,12 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 		}
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
 
 	for destinationFileAbsPath, file := range zipFilePathListMap {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -89,15 +90,15 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 		}
 	}
 
-	session.endProgress()
-
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	session.endProgress(ProgressStatusCompleted)
+
+	return err
 }
 
 func makeAddFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, destinationFileAbsPath string, pctx *PasswordContext) error {
@@ -182,18 +183,13 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 	}
 
 	// todo add a check if continue of error then dont return
-	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToExtract, zippedFileToExtractInfo.FileInfo().IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
-		session.sizeProgress(zippedFileToExtractInfo.FileInfo().Size(), soFarTransferredSize, lastTransferredSize)
-	})
+	numBytesWritten, err := SessionAwareCopy(session, writer, fileToExtract, zippedFileToExtractInfo.FileInfo().IsDir(), zippedFileToExtractInfo.FileInfo().Size())
+
 	if errors.Is(err, zip.ErrChecksum) {
 		session.revertSizeProgress(numBytesWritten)
 
 		return fmt.Errorf(string(ErrorInvalidPassword))
 	}
 
-	if err != nil && !(numBytesWritten == zippedFileToExtractInfo.FileInfo().Size() && err == io.EOF) {
-		return err
-	}
-
-	return nil
+	return err
 }

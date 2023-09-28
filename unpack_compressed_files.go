@@ -76,11 +76,12 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 		}
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, false)
 
 	for destinationFileAbsPath, file := range compressedFilePathListMap {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -94,13 +95,13 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 		}
 	}
 
-	session.endProgress()
-
 	if !exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
 	}
+
+	session.endProgress(ProgressStatusCompleted)
 
 	return err
 }
@@ -140,15 +141,9 @@ func addFileFromCompressedFileToDisk(session *Session, arcFileDecompressor *inte
 		}
 	}()
 
+	// todo add a check if continue of error then dont return
 	err = (*arcFileDecompressor).DecompressBare(reader, func(r io.Reader) (written int64, err error) {
-		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, r, fileInfo.IsDir, func(soFarTransferredSize, lastTransferredSize int64) {
-			session.sizeProgress(fileInfo.Size, soFarTransferredSize, lastTransferredSize)
-		})
-		if err != nil && !(numBytesWritten == fileInfo.Size && err == io.EOF) {
-			return numBytesWritten, err
-		}
-
-		return numBytesWritten, nil
+		return SessionAwareCopy(session, writer, r, fileInfo.IsDir, fileInfo.Size)
 	})
 
 	return err

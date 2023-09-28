@@ -4,19 +4,30 @@ import (
 	"time"
 )
 
+type ProgressStatus string
+
+const (
+	ProgressStatusStarting  ProgressStatus = "Starting"
+	ProgressStatusRunning   ProgressStatus = "Running"
+	ProgressStatusCancelled ProgressStatus = "Cancelled"
+	ProgressStatusCompleted ProgressStatus = "Completed"
+)
+
 type Progress struct {
-	TotalFiles                        int64     // Total number of files to be transferred.
-	SentFilesCount                    int64     // Number of files that have been transferred.
-	SentFilesCountPercentage          float64   // Percentage of files that have been transferred.
-	CurrentFilepath                   string    // Path of the current file being transferred.
-	TotalSize                         int64     // Total byte size of all files.
-	SentSize                          int64     // Total byte size that has been transferred.
-	SentSizeProgressPercentage        float64   // Percentage of the total byte size that has been transferred.
-	CurrentFileSize                   int64     // Size of the current file being transferred.
-	CurrentFileSentSize               int64     // Amount of the current file that has been transferred.
-	CurrentFileProgressSizePercentage float64   // Percentage of the current file that has been transferred.
-	StartTime                         time.Time // Start time of the transfer.
-	lastSentTime                      time.Time // Time when the last file transfer update was sent.
+	TotalFiles                        int64          // Total number of files to be transferred.
+	SentFilesCount                    int64          // Number of files that have been transferred.
+	SentFilesCountPercentage          float64        // Percentage of files that have been transferred.
+	CurrentFilepath                   string         // Path of the current file being transferred.
+	TotalSize                         int64          // Total byte size of all files.
+	SentSize                          int64          // Total byte size that has been transferred.
+	SentSizeProgressPercentage        float64        // Percentage of the total byte size that has been transferred.
+	CurrentFileSize                   int64          // Size of the current file being transferred.
+	CurrentFileSentSize               int64          // Amount of the current file that has been transferred.
+	CurrentFileProgressSizePercentage float64        // Percentage of the current file that has been transferred.
+	StartTime                         time.Time      // Start time of the transfer.
+	ProgressStatus                    ProgressStatus // Progress status
+	CanResumeTransfer                 bool           // Indicates whether the session be resumed
+	lastSentTime                      time.Time      // Time when the last file transfer update was sent.
 }
 
 // newProgress initializes and returns a new Progress object
@@ -34,6 +45,9 @@ func newProgress(totalFiles, totalSize int64) *Progress {
 		CurrentFileSize:                   0,
 		CurrentFileSentSize:               0,
 		CurrentFileProgressSizePercentage: 0,
+
+		CanResumeTransfer: true,
+		ProgressStatus:    ProgressStatusStarting,
 
 		StartTime:    time.Now(),
 		lastSentTime: time.Time{},
@@ -53,6 +67,7 @@ func (progress *Progress) fileProgress(absolutePath string, filesProgressCount i
 	progress.CurrentFileSize = 0
 	progress.CurrentFileSentSize = 0
 	progress.CurrentFileProgressSizePercentage = 0
+	progress.setStatus(ProgressStatusRunning)
 
 	now := time.Now()
 	timeDifference := now.Sub(progress.lastSentTime)
@@ -79,6 +94,7 @@ func (progress *Progress) sizeProgress(currentFileSize, soFarTransferredSize, la
 	progress.CurrentFileSentSize = soFarTransferredSize
 	currentFileProgressSizePercentage := Percent(float64(progress.CurrentFileSentSize), float64(currentFileSize))
 	progress.CurrentFileProgressSizePercentage = currentFileProgressSizePercentage
+	progress.setStatus(ProgressStatusRunning)
 
 	now := time.Now()
 	timeDifference := now.Sub(progress.lastSentTime)
@@ -102,6 +118,7 @@ func (progress *Progress) revertSizeProgress(size int64, progressFunc *ProgressF
 	// Decrement the current file's sent size by the given size.
 	progress.CurrentFileSentSize -= size
 	progress.CurrentFileProgressSizePercentage = 0
+	progress.setStatus(ProgressStatusRunning)
 
 	progress.lastSentTime = time.Now()
 	progressFunc.OnReceived(progress)
@@ -113,13 +130,20 @@ func (progress *Progress) revertSizeProgress(size int64, progressFunc *ProgressF
 // indicating an increase or decrease in the total size, respectively.
 func (progress *Progress) totalSizeCorrection(size int64, progressFunc *ProgressFunc) {
 	progress.TotalSize += size
+	progress.setStatus(ProgressStatusRunning)
 	progressFunc.OnReceived(progress)
 }
 
-// endProgress signals the end of the file transfer process by invoking the OnCompleted function
-// of the provided progressFunc with the final progress state.
-func (progress *Progress) endProgress(progressFunc *ProgressFunc) {
-	progress.lastSentTime = time.Now()
+// setStatus sets progress status
+func (progress *Progress) setStatus(status ProgressStatus) {
+	progress.ProgressStatus = status
+}
 
-	progressFunc.OnCompleted(progress)
+// endProgress signals the end of the file transfer process by invoking the OnEnded function
+// of the provided progressFunc with the final progress state.
+func (progress *Progress) endProgress(progressFunc *ProgressFunc, status ProgressStatus) {
+	progress.lastSentTime = time.Now()
+	progress.setStatus(status)
+
+	progressFunc.OnEnded(progress)
 }

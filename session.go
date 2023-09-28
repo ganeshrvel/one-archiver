@@ -7,8 +7,8 @@ import (
 
 // ProgressFunc defines callback functions for updating progress.
 type ProgressFunc struct {
-	OnReceived  func(*Progress) // Function to be called when a progress update is received.
-	OnCompleted func(*Progress) // Function to be called when the operation is completed.
+	OnReceived func(*Progress) // Called when a progress update is received.
+	OnEnded    func(*Progress) // Called upon operation termination. An end doesn't necessarily indicate successful completion. Always inspect ProgressStatus to determine the outcome.
 }
 
 // ContextHandler provides a structure to manage context for sessions.
@@ -52,8 +52,9 @@ func newSession(sessionId string, progressFunc *ProgressFunc) *Session {
 }
 
 // initializeProgress sets up the progress for the session
-func (session *Session) initializeProgress(totalFiles, totalSize int64) *Progress {
+func (session *Session) initializeProgress(totalFiles, totalSize int64, canResumeTransfer bool) *Progress {
 	session.progress = newProgress(totalFiles, totalSize)
+	session.progress.CanResumeTransfer = canResumeTransfer
 
 	return session.progress
 }
@@ -95,12 +96,12 @@ func (session *Session) totalSizeCorrection(size int64) {
 	session.progress.totalSizeCorrection(size, session.ProgressFunc)
 }
 
-// endProgress finalizes the progress for the session.
-func (session *Session) endProgress() {
+// endProgress completes the progress for the session, it marks the transfer as ProgressStatusCompleted.
+func (session *Session) endProgress(status ProgressStatus) {
 	session.setCancelFunc(nil)
 
 	session.disableCtxCancel()
-	session.progress.endProgress(session.ProgressFunc)
+	session.progress.endProgress(session.ProgressFunc, status)
 }
 
 // todo
@@ -115,7 +116,7 @@ func (session *Session) Stop() {
 	session.cancel()
 }
 
-// enableCtxCancel enables the ability to interrupt progress with Pause, resume, or stop.
+// enableCtxCancel enables the ability to interrupt progress.
 func (session *Session) enableCtxCancel() {
 	session.setIsCtxCancelEnabled(true)
 }

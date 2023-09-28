@@ -43,11 +43,12 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 		return err
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
 
 	for destinationFileAbsPath, item := range zipFilePathListMap {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -61,7 +62,7 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 		}
 	}
 
-	session.endProgress()
+	session.endProgress(ProgressStatusCompleted)
 
 	return err
 }
@@ -141,12 +142,7 @@ func addFileToZip(
 	}
 
 	// todo add a check if continue of error then dont return
-	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToZip, fileInfo.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
-		session.sizeProgress(fileInfo.Size(), soFarTransferredSize, lastTransferredSize)
-	})
-	if err != nil && !(numBytesWritten == fileInfo.Size() && err == io.EOF) {
-		return err
-	}
+	_, err = SessionAwareCopy(session, writer, fileToZip, fileInfo.IsDir(), fileInfo.Size())
 
 	return err
 }

@@ -107,7 +107,7 @@ func Unpack(filename, tempDir string, session *Session) {
 
 	err := StartUnpacking(am, au, session)
 	if err != nil {
-		fmt.Printf("Error occured: %+v\n", err)
+		fmt.Printf("\nError occured: %+v\n", err)
 
 		return
 	}

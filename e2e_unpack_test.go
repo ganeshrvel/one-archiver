@@ -631,7 +631,7 @@ func TestUnpacking(t *testing.T) {
 		OnReceived: func(progress *Progress) {
 			//fmt.Printf("received: %v\n", progress)
 		},
-		OnCompleted: func(progress *Progress) {
+		OnEnded: func(progress *Progress) {
 			//elapsed := time.Since(progress.StartTime)
 
 			//fmt.Printf("Time taken to create the archive: %s", elapsed)
@@ -849,7 +849,7 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		OnReceived: func(progress *Progress) {
 			//fmt.Printf("received: %v\n", progress)
 		},
-		OnCompleted: func(progress *Progress) {
+		OnEnded: func(progress *Progress) {
 			//elapsed := time.Since(progress.StartTime)
 
 			//fmt.Printf("Time taken to create the archive: %s", elapsed)
@@ -982,7 +982,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		OnReceived: func(progress *Progress) {
 			//fmt.Printf("received: %v\n", progress)
 		},
-		OnCompleted: func(progress *Progress) {
+		OnEnded: func(progress *Progress) {
 			//elapsed := time.Since(progress.StartTime)
 
 			//fmt.Printf("Time taken to create the archive: %s", elapsed)

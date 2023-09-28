@@ -48,11 +48,13 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		return fmt.Errorf(string(ErrorCompressedFileNoFileFound))
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize)
+	//todo actually move the initializeProgress to very begginging or something else the ui will have a latency. show some progress like stalling or something
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, false)
 
 	for absolutePath, item := range zipFilePathListMap {
 		select {
 		case <-session.isDone():
+			session.endProgress(ProgressStatusCancelled)
 			return session.ctxError()
 		default:
 		}
@@ -66,7 +68,7 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		}
 	}
 
-	session.endProgress()
+	session.endProgress(ProgressStatusCompleted)
 
 	return err
 }
@@ -92,14 +94,7 @@ func addFileToCompressedFile(session *Session, arcFileCompressor *interface{ arc
 
 	// todo add a check if continue of error then dont return
 	err = _arcFileCompressor.CompressBare(destinationFileWriter, func(w io.Writer) (written int64, err error) {
-		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, w, fileToArchive, fileToArchiveStat.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
-			session.sizeProgress(fileToArchiveStat.Size(), soFarTransferredSize, lastTransferredSize)
-		})
-		if err != nil && !(numBytesWritten == fileToArchiveStat.Size() && err == io.EOF) {
-			return numBytesWritten, err
-		}
-
-		return numBytesWritten, nil
+		return SessionAwareCopy(session, w, fileToArchive, fileToArchiveStat.IsDir(), fileToArchiveStat.Size())
 	})
 
 	return err

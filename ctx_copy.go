@@ -46,8 +46,8 @@ func (cr *ctxProgressReader) Read(p []byte) (int, error) {
 	}
 }
 
-// CtxCopy copies data from the src reader to the dst writer.
-func CtxCopy(ctx *context.Context, dst io.Writer, src io.Reader, isDir bool, progress CtxProgressFunc) (writtenBytes int64, err error) {
+// ctxCopy copies data from the src reader to the dst writer.
+func ctxCopy(ctx *context.Context, dst io.Writer, src io.Reader, isDir bool, progress CtxProgressFunc) (writtenBytes int64, err error) {
 	if isDir {
 		_, err := io.Copy(dst, src)
 
@@ -55,4 +55,23 @@ func CtxCopy(ctx *context.Context, dst io.Writer, src io.Reader, isDir bool, pro
 	}
 
 	return io.Copy(dst, &ctxProgressReader{r: src, ctx: ctx, onProg: progress})
+}
+
+// SessionAwareCopy performs a context-aware copy operation that relies on session-specific behaviors.
+// This function will update the session's progress based on the bytes transferred, especially tailored
+// for handling different types of files, including directories. It also handles specific context-based
+// errors, such as operation cancellations, and updates the session's progress status accordingly.
+func SessionAwareCopy(session *Session, w io.Writer, r io.Reader, isDir bool, fileTotalSize int64) (numBytesWritten int64, err error) {
+	numBytesWritten, err = ctxCopy(session.contextHandler.ctx, w, r, isDir, func(soFarTransferredSize, lastTransferredSize int64) {
+		session.sizeProgress(fileTotalSize, soFarTransferredSize, lastTransferredSize)
+	})
+	if err != nil && !(numBytesWritten == fileTotalSize && err == io.EOF) {
+		if err.Error() == string(ErrorCancelledFileOperation) {
+			session.endProgress(ProgressStatusCancelled)
+		}
+
+		return numBytesWritten, err
+	}
+
+	return numBytesWritten, nil
 }
