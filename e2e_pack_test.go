@@ -620,7 +620,7 @@ func TestPacking(t *testing.T) {
 		},
 	}
 
-	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
+	session := newSession("", ph)
 
 	Convey("Packing | No encryption - ZIP", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.zip")

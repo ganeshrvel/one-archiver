@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor interface{ archiver.Compressor }, fileList *[]string) error {
+func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor interface{ archiver.CompressorBare }, fileList *[]string) error {
 	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	sourceFilepath := ""
@@ -61,7 +61,7 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		session.enableCtxCancel()
 		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
 
-		if err := addFileToCompressedFile(&arcFileCompressor, destinationFileWriter, item.absFilepath); err != nil {
+		if err := addFileToCompressedFile(session, &arcFileCompressor, destinationFileWriter, item.absFilepath); err != nil {
 			return err
 		}
 	}
@@ -71,8 +71,7 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 	return err
 }
 
-// todo add progress intruption ctxcopy
-func addFileToCompressedFile(arcFileCompressor *interface{ archiver.Compressor }, destinationFileWriter io.Writer, sourceFilepath string) error {
+func addFileToCompressedFile(session *Session, arcFileCompressor *interface{ archiver.CompressorBare }, destinationFileWriter io.Writer, sourceFilepath string) error {
 	_arcFileCompressor := *arcFileCompressor
 
 	fileToArchive, err := os.Open(sourceFilepath)
@@ -86,8 +85,22 @@ func addFileToCompressedFile(arcFileCompressor *interface{ archiver.Compressor }
 		}
 	}()
 
+	fileToArchiveStat, err := fileToArchive.Stat()
+	if err != nil {
+		return err
+	}
+
 	// todo add a check if continue of error then dont return
-	err = _arcFileCompressor.Compress(fileToArchive, destinationFileWriter)
+	err = _arcFileCompressor.CompressBare(destinationFileWriter, func(w io.Writer) (written int64, err error) {
+		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, w, fileToArchive, fileToArchiveStat.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
+			session.sizeProgress(fileToArchiveStat.Size(), soFarTransferredSize, lastTransferredSize)
+		})
+		if err != nil && !(numBytesWritten == fileToArchiveStat.Size() && err == io.EOF) {
+			return numBytesWritten, err
+		}
+
+		return numBytesWritten, nil
+	})
 
 	return err
 }

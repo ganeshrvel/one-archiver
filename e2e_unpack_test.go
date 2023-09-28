@@ -638,7 +638,7 @@ func TestUnpacking(t *testing.T) {
 		},
 	}
 
-	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
+	session := newSession("", ph)
 
 	Convey("Unpacking | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
@@ -856,7 +856,7 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		},
 	}
 
-	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
+	session := newSession("", ph)
 
 	Convey("Wrong password | Archive Unpacking - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/ganeshrvel/archiver"
 	ignore "github.com/sabhiram/go-gitignore"
+	"io"
 	"os"
 	"path/filepath"
 )
 
-func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFileDecompressor interface{ archiver.Decompressor }) error {
+func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFileDecompressor interface{ archiver.DecompressorBare }) error {
 	fileList := arc.unpack.FileList
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	destinationPath := arc.unpack.Destination
@@ -104,8 +105,7 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 	return err
 }
 
-// todo add progress intruption ctxcopy
-func addFileFromCompressedFileToDisk(session *Session, arcFileDecompressor *interface{ archiver.Decompressor }, fileInfo *ArchiveFileInfo, destinationFileAbsPath, sourceFilepath string) error {
+func addFileFromCompressedFileToDisk(session *Session, arcFileDecompressor *interface{ archiver.DecompressorBare }, fileInfo *ArchiveFileInfo, destinationFileAbsPath, sourceFilepath string) error {
 	if fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
 			return err
@@ -140,12 +140,16 @@ func addFileFromCompressedFileToDisk(session *Session, arcFileDecompressor *inte
 		}
 	}()
 
-	// todo implement progress.sizeProgress and CtxCopy
-	err = (*arcFileDecompressor).Decompress(reader, writer)
-	// todo add a check if continue of error then dont return
-	if err != nil {
-		return err
-	}
+	err = (*arcFileDecompressor).DecompressBare(reader, func(r io.Reader) (written int64, err error) {
+		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, r, fileInfo.IsDir, func(soFarTransferredSize, lastTransferredSize int64) {
+			session.sizeProgress(fileInfo.Size, soFarTransferredSize, lastTransferredSize)
+		})
+		if err != nil && !(numBytesWritten == fileInfo.Size && err == io.EOF) {
+			return numBytesWritten, err
+		}
 
-	return nil
+		return numBytesWritten, nil
+	})
+
+	return err
 }

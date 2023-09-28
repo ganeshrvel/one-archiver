@@ -141,7 +141,11 @@ func isSymlink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeSymlink != 0
 }
 
-func Percent(partial float32, total float32) float32 {
+func Percent(partial, total float64) float64 {
+	if total == 0 {
+		return 0
+	}
+
 	return (partial / total) * 100
 }
 

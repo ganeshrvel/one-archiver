@@ -159,13 +159,13 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 	}
 
 	if isSymlink(*_arcFileObj.sourceArchiveFileInfo) {
-		targetPathBytes := ""
+		originalTargetPath := ""
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
-			targetPathBytes = fileHeader.Linkname
+			originalTargetPath = fileHeader.Linkname
 		}
 
-		if targetPathBytes == "" {
+		if originalTargetPath == "" {
 			r, err := io.ReadAll(file.ReadCloser)
 			if err != nil {
 				return err
@@ -176,19 +176,18 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 				}
 			}()
 
-			targetPathBytes = string(r)
+			originalTargetPath = string(r)
 		}
 
-		targetPath := filepath.ToSlash(targetPathBytes)
+		targetPathToWrite := filepath.ToSlash(originalTargetPath)
 
 		// todo add a check if continue of error then dont return
-		err := os.Symlink(targetPath, _arcFileObj.absFilepath)
+		err := os.Symlink(targetPathToWrite, _arcFileObj.absFilepath)
 		if err != nil {
 			return err
 		}
 
-		targetPathSize := int64(len(targetPath))
-		session.sizeProgress(targetPathSize, targetPathSize)
+		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		// todo add a check if continue of error then dont return
 		return nil
@@ -211,8 +210,8 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 	}()
 
 	// todo add a check if continue of error then dont return
-	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, file.ReadCloser, func(bytesTransferred int64) {
-		session.sizeProgress(_arcFileObj.fileInfo.Size, bytesTransferred)
+	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, file.ReadCloser, _arcFileObj.fileInfo.IsDir, func(soFarTransferredSize, lastTransferredSize int64) {
+		session.sizeProgress(_arcFileObj.fileInfo.Size, soFarTransferredSize, lastTransferredSize)
 	})
 	if err != nil && !(numBytesWritten == _arcFileObj.fileInfo.Size && err == io.EOF) {
 		return err

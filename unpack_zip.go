@@ -154,14 +154,15 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 	}
 
 	if isSymlink(zippedFileToExtractInfo.FileInfo()) {
-		targetBytes, err := io.ReadAll(fileToExtract)
+		originalTargetPathBytes, err := io.ReadAll(fileToExtract)
 		if err != nil {
 			return err
 		}
 
-		targetPath := filepath.ToSlash(string(targetBytes))
+		originalTargetPath := string(originalTargetPathBytes)
+		targetPathToWrite := filepath.ToSlash(originalTargetPath)
 
-		err = os.Symlink(targetPath, destinationFileAbsPath)
+		err = os.Symlink(targetPathToWrite, destinationFileAbsPath)
 		if errors.Is(err, zip.ErrChecksum) {
 			return fmt.Errorf(string(ErrorInvalidPassword))
 		}
@@ -169,8 +170,7 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 			return err
 		}
 
-		targetPathSize := int64(len(targetPath))
-		session.sizeProgress(targetPathSize, targetPathSize)
+		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		// todo add a check if continue of error then dont return
 		return nil
@@ -182,11 +182,12 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 	}
 
 	// todo add a check if continue of error then dont return
-	// todo here since multiple password checking is there we should subtract the bytesTransferred in the previous loop until the full file is written
-	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToExtract, func(bytesTransferred int64) {
-		session.sizeProgress(zippedFileToExtractInfo.FileInfo().Size(), bytesTransferred)
+	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToExtract, zippedFileToExtractInfo.FileInfo().IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
+		session.sizeProgress(zippedFileToExtractInfo.FileInfo().Size(), soFarTransferredSize, lastTransferredSize)
 	})
 	if errors.Is(err, zip.ErrChecksum) {
+		session.revertSizeProgress(numBytesWritten)
+
 		return fmt.Errorf(string(ErrorInvalidPassword))
 	}
 

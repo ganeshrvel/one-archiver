@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func createZipFile(session *Session, arc *zipArchive, fileList []string, commonParentPath string) error {
@@ -55,7 +56,7 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 		session.enableCtxCancel()
 		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
 
-		if err := addFileToZip(zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
+		if err := addFileToZip(session, zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
 			return err
 		}
 	}
@@ -65,8 +66,8 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 	return err
 }
 
-// todo add progress intruption ctxcopy
 func addFileToZip(
+	session *Session,
 	zipWriter *zip.Writer,
 	fileInfo os.FileInfo,
 	filename string,
@@ -75,7 +76,6 @@ func addFileToZip(
 	encryptionMethod zip.EncryptionMethod,
 
 ) error {
-	var reader io.Reader
 
 	header, err := zip.FileInfoHeader(fileInfo)
 	if err != nil {
@@ -83,11 +83,12 @@ func addFileToZip(
 	}
 
 	// see http://golang.org/pkg/archive/zip/#pkg-constants
-	header.Method = zip.Deflate
+
 	header.Name = relativeFilename
+	header.Method = zip.Deflate
+	header.SetModTime(fileInfo.ModTime())
 
 	if password != "" {
-		header.SetModTime(fileInfo.ModTime())
 		header.SetPassword(password)
 		header.SetEncryptionMethod(encryptionMethod)
 	}
@@ -98,20 +99,22 @@ func addFileToZip(
 	}
 
 	if isSymlink(fileInfo) {
-		target, err := os.Readlink(filename)
+		originalTargetPath, err := os.Readlink(filename)
 		if err != nil {
 			return err
 		}
 
-		// Write symlink's target to writer - file's body for symlinks is the symlink target.
 		// todo add a check if continue of error then dont return
-		_, _ = writer.Write([]byte(filepath.ToSlash(target)))
+		// Write symlink's target to writer - file's body for symlinks is the symlink target.
+		targetPathToWrite := filepath.ToSlash(originalTargetPath)
+		_, _ = writer.Write([]byte(targetPathToWrite))
 		if err != nil {
 			return err
 		}
+
+		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		return nil
-
 	}
 
 	fileToZip, err := os.Open(filename)
@@ -123,10 +126,27 @@ func addFileToZip(
 			fmt.Printf("%v\n", err)
 		}
 	}()
-	reader = fileToZip
+
+	if fileInfo.IsDir() {
+		_, err = io.Copy(writer, fileToZip)
+
+		// todo add a check if continue of error then dont return
+		// Check for the specific error where the source is a directory.
+		// If the error indicates that the source "is a directory", we ignore it and return nil.
+		if strings.Contains(err.Error(), "is a directory") {
+			return nil
+		}
+
+		return err
+	}
 
 	// todo add a check if continue of error then dont return
-	_, _ = io.Copy(writer, reader)
+	numBytesWritten, err := CtxCopy(session.contextHandler.ctx, writer, fileToZip, fileInfo.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
+		session.sizeProgress(fileInfo.Size(), soFarTransferredSize, lastTransferredSize)
+	})
+	if err != nil && !(numBytesWritten == fileInfo.Size() && err == io.EOF) {
+		return err
+	}
 
 	return err
 }

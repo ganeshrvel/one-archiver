@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, destinationFilename string, passwords []string) {
+func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, destinationFilename string, passwords []string, size int64) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
 			_listObj := &ArchiveRead{
@@ -92,6 +92,33 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 		assertionArr := []string{destinationFilename}
 
 		So(itemsArr, ShouldResemble, assertionArr)
+	})
+
+	Convey("Size and mode | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         false,
+			OrderBy:           OrderByName,
+			OrderDir:          OrderDirDesc,
+		}
+
+		result, err := GetArchiveFileList(_metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var ModeArr []string
+		var SizeArr []int64
+
+		for _, item := range result {
+			SizeArr = append(SizeArr, item.Size)
+			ModeArr = append(ModeArr, item.Mode.String())
+		}
+
+		modeArrAssertion := []string{"-rw-r--r--"}
+		sizeArrAssertion := []int64{size}
+
+		So(ModeArr, ShouldResemble, modeArrAssertion)
+		So(SizeArr, ShouldResemble, sizeArrAssertion)
 	})
 }
 
@@ -1152,7 +1179,7 @@ func TestArchiveListing(t *testing.T) {
 		metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(metaObj, true, "mock_test_file1", passwords, 9)
 	})
 	Convey("Unpacking compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.a.txt.gz")
@@ -1160,7 +1187,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1.a.txt", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1.a.txt", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | Zstd", t, func() {
@@ -1168,7 +1195,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | Xz", t, func() {
@@ -1176,7 +1203,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
@@ -1184,7 +1211,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | Lz4", t, func() {
@@ -1192,7 +1219,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | Bz2", t, func() {
@@ -1200,7 +1227,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 
 	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
@@ -1208,7 +1235,7 @@ func TestArchiveListing(t *testing.T) {
 		_metaObj := &ArchiveMeta{Filename: filename}
 
 		var passwords []string
-		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords)
+		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
 	})
 }
 
@@ -1383,7 +1410,7 @@ func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, passwords []string)
 	})
 }
 
-func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string) {
+func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string, size int64) {
 	Convey("Kind | it should not throw an error", func() {
 		_listObj := &ArchiveRead{
 			ListDirectoryPath: "",
@@ -1404,12 +1431,38 @@ func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string
 			KindArr = append(KindArr, item.Kind())
 		}
 
-		assertionArr := []string{destinationFilename}
+		fullPathAssertionArr := []string{destinationFilename}
+		kindArrAssertion := []string{"Unknown"}
 
-		assertionParentPathArr := []string{"Unknown"}
+		So(fullPathArr, ShouldResemble, fullPathAssertionArr)
+		So(KindArr, ShouldResemble, kindArrAssertion)
+	})
 
-		So(fullPathArr, ShouldResemble, assertionArr)
-		So(KindArr, ShouldResemble, assertionParentPathArr)
+	Convey("Size and mode | it should not throw an error", func() {
+		_listObj := &ArchiveRead{
+			ListDirectoryPath: "",
+			Recursive:         true,
+			OrderBy:           OrderByKind,
+			OrderDir:          OrderDirAsc,
+		}
+
+		result, err := GetArchiveFileList(metaObj, _listObj)
+
+		So(err, ShouldBeNil)
+
+		var ModeArr []string
+		var SizeArr []int64
+
+		for _, item := range result {
+			SizeArr = append(SizeArr, item.Size)
+			ModeArr = append(ModeArr, item.Mode.String())
+		}
+
+		modeArrAssertion := []string{"-rw-r--r--"}
+		sizeArrAssertion := []int64{size}
+
+		So(ModeArr, ShouldResemble, modeArrAssertion)
+		So(SizeArr, ShouldResemble, sizeArrAssertion)
 	})
 }
 
@@ -1542,42 +1595,42 @@ func TestSymlinkListing(t *testing.T) {
 
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zst")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.xz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.sz")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.lz4")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.bz2")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.br")
 		_metaObj := &ArchiveMeta{Filename: filename}
-		_testListingCompressedFile(_metaObj, "arc_test_pack")
+		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 }

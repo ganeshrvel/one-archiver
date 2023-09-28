@@ -49,7 +49,7 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		session.enableCtxCancel()
 		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
 
-		if err := addFileToTarBall(&arcFileObj, *item.fileInfo, item.absFilepath, item.relativeFilePath, item.isDir); err != nil {
+		if err := addFileToTarBall(session, &arcFileObj, *item.fileInfo, item.absFilepath, item.relativeFilePath, item.isDir); err != nil {
 			return err
 		}
 	}
@@ -59,8 +59,7 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 	return err
 }
 
-// todo add progress intruption ctxcopy
-func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.FileInfo, sourceFilename string, relativeSourceFilename string, isDir bool) error {
+func addFileToTarBall(session *Session, arcFileObj *interface{ archiver.Writer }, fileInfo os.FileInfo, sourceFilename string, relativeSourceFilename string, isDir bool) error {
 	_arcFileObj := *arcFileObj
 
 	_relativeFilename := relativeSourceFilename
@@ -71,13 +70,15 @@ func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.File
 
 	var fileToArchive io.ReadCloser
 	if isSymlink(fileInfo) {
-		target, err := os.Readlink(sourceFilename)
+		originalTargetPath, err := os.Readlink(sourceFilename)
 		if err != nil {
 			return err
 		}
-
-		targetReader := bytes.NewReader([]byte(filepath.ToSlash(target)))
+		targetPathToWrite := filepath.ToSlash(originalTargetPath)
+		targetReader := bytes.NewReader([]byte(targetPathToWrite))
 		fileToArchive = io.NopCloser(targetReader)
+
+		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
 	} else {
 		f, err := os.Open(sourceFilename)
 		if err != nil {
@@ -92,14 +93,25 @@ func addFileToTarBall(arcFileObj *interface{ archiver.Writer }, fileInfo os.File
 		}
 	}()
 
-	// todo add a check if continue of error then dont return
-	err := _arcFileObj.Write(archiver.File{
+	af := archiver.File{
 		FileInfo: archiver.FileInfo{
 			FileInfo:   fileInfo,
 			CustomName: _relativeFilename,
 			SourcePath: sourceFilename,
 		},
 		ReadCloser: fileToArchive,
+	}
+
+	// todo add a check if continue of error then dont return
+	err := _arcFileObj.WriteBare(af, func(w io.Writer, f archiver.File) (written int64, err error) {
+		numBytesWritten, err := CtxCopy(session.contextHandler.ctx, w, f, fileInfo.IsDir(), func(soFarTransferredSize, lastTransferredSize int64) {
+			session.sizeProgress(fileInfo.Size(), soFarTransferredSize, lastTransferredSize)
+		})
+		if err != nil && !(numBytesWritten == fileInfo.Size() && err == io.EOF) {
+			return numBytesWritten, err
+		}
+
+		return numBytesWritten, nil
 	})
 
 	return err

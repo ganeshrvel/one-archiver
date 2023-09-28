@@ -3,7 +3,7 @@ module github.com/ganeshrvel/one-archiver
 go 1.19
 
 require (
-	github.com/ganeshrvel/archiver v1.1.3-0.20230811154920-a245681628ee
+	github.com/ganeshrvel/archiver v1.1.3-0.20230927185115-7331214cdfe2
 	github.com/ganeshrvel/yeka_zip v0.0.0-20230812150339-aec70611e891
 	github.com/kr/pretty v0.3.1
 	github.com/mitchellh/go-homedir v1.1.0
@@ -19,7 +19,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect

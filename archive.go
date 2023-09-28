@@ -5,7 +5,7 @@ import (
 	"github.com/ganeshrvel/archiver"
 )
 
-func archiveFormat(arcFileObj *interface{}, password string, overwriteExisting bool) error {
+func archiveFormat(arcFileObj *interface{}, singlePassword string, overwriteExisting bool) error {
 	const (
 		mkdirAll               = true
 		implicitTopLevelFolder = false
@@ -30,7 +30,7 @@ func archiveFormat(arcFileObj *interface{}, password string, overwriteExisting b
 		arcValues.MkdirAll = mkdirAll
 		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
 		arcValues.ContinueOnError = continueOnError
-		arcValues.Password = password
+		arcValues.Password = singlePassword
 		break
 
 	case *archiver.Tar:

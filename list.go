@@ -138,6 +138,10 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 		fallthrough
 	case "gz":
 		arcObj = compressedFile{meta: _meta, read: _read}
+	case "tar":
+		fallthrough
+	case "rar":
+		fallthrough
 	case "tar.zst":
 		fallthrough
 	case "tar.xz":
@@ -151,8 +155,6 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 	case "tar.br":
 		fallthrough
 	case "tar.gz":
-		fallthrough
-	default:
 		arcObj = commonArchive{meta: _meta, read: _read}
 	}
 

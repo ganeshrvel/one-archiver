@@ -31,13 +31,11 @@ func (arc commonArchive) doPack(session *Session) error {
 	password := arc.pack.Password
 
 	arcFileObj, err := archiver.ByExtension(filename)
-
 	if err != nil {
 		return err
 	}
 
 	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
-
 	if err != nil {
 		return err
 	}
