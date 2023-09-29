@@ -5,117 +5,69 @@ import (
 	"github.com/ganeshrvel/archiver"
 )
 
-func archiveFormat(arcFileObj *interface{}, singlePassword string, overwriteExisting bool) error {
+func archiveFormat(arcFileObj *interface{}, pCtx *PasswordContext, overwriteExisting bool) error {
 	const (
-		mkdirAll               = true
-		implicitTopLevelFolder = false
-		continueOnError        = false
-		compressionLevel       = 9
-		selectiveCompression   = false
+		compressionLevel     = 9
+		selectiveCompression = false
 	)
 
-	tarObj := &archiver.Tar{
-		OverwriteExisting:      overwriteExisting,
-		MkdirAll:               mkdirAll,
-		ImplicitTopLevelFolder: implicitTopLevelFolder,
-		ContinueOnError:        continueOnError,
-	}
+	tarObj := &archiver.Tar{}
 
 	_arcFileObj := *arcFileObj
 
 	// refer https://github.com/ganeshrvel/archiver/blob/master/cmd/arc/main.go for more
 	switch arcValues := _arcFileObj.(type) {
 	case *archiver.Rar:
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.MkdirAll = mkdirAll
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
-		arcValues.Password = singlePassword
+		arcValues.Password = pCtx.getSinglePassword()
 		break
 
 	case *archiver.Tar:
 		arcValues = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 
 		break
 
 	case *archiver.TarBrotli:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 		arcValues.Quality = compressionLevel
 
 		break
 
 	case *archiver.TarBz2:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 		arcValues.CompressionLevel = compressionLevel
 
 		break
 
 	case *archiver.TarGz:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 		arcValues.CompressionLevel = compressionLevel
 
 		break
 
 	case *archiver.TarLz4:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 		arcValues.CompressionLevel = compressionLevel
 
 		break
 
 	case *archiver.TarSz:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 
 		break
 
 	case *archiver.TarXz:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 
 		break
 
 	case *archiver.TarZstd:
 		arcValues.Tar = tarObj
-		arcValues.MkdirAll = mkdirAll
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 
 		break
 
 	case *archiver.Zip:
 		arcValues.CompressionLevel = compressionLevel
-		arcValues.OverwriteExisting = overwriteExisting
-		arcValues.MkdirAll = mkdirAll
 		arcValues.SelectiveCompression = selectiveCompression
-		arcValues.ImplicitTopLevelFolder = implicitTopLevelFolder
-		arcValues.ContinueOnError = continueOnError
 
 		break
 

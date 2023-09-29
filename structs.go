@@ -41,15 +41,20 @@ func (ar *ArchiveRead) passwordContext() *PasswordContext {
 	return &PasswordContext{passwords: ar.Passwords}
 }
 
+// ArchivePack holds configuration details for packing files into an archive.
 type ArchivePack struct {
-	Password string
-	FileList []string
+	Password string   // Password to encrypt the archive.
+	FileList []string // List of specific files to include in the archive.
+}
+
+func (ap *ArchivePack) passwordContext() *PasswordContext {
+	return &PasswordContext{passwords: []string{ap.Password}}
 }
 
 type ArchiveUnpack struct {
-	Passwords   []string
-	FileList    []string
-	Destination string
+	Passwords   []string // List of passwords to use for encrypted archives.
+	FileList    []string // List of specific files to extract from the archive.
+	Destination string   // Destination path where the files should be extracted.
 }
 
 func (au *ArchiveUnpack) passwordContext() *PasswordContext {

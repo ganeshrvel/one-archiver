@@ -68,7 +68,7 @@ func (arc commonArchive) prepare() (PrepareArchiveInfo, error) {
 		return prepArcInf, err
 	}
 
-	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 
 	if err != nil {
 		return prepArcInf, err

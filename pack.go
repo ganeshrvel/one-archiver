@@ -28,14 +28,14 @@ func (arc zipArchive) doPack(session *Session) error {
 func (arc commonArchive) doPack(session *Session) error {
 	filename := arc.meta.Filename
 	fileList := arc.pack.FileList
-	password := arc.pack.Password
+	pctx := arc.read.passwordContext()
 
 	arcFileObj, err := archiver.ByExtension(filename)
 	if err != nil {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, password, OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 	if err != nil {
 		return err
 	}

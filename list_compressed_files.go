@@ -94,7 +94,7 @@ func (arc compressedFile) list() ([]ArchiveFileInfo, error) {
 		return nil, err
 	}
 
-	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 	var compressedFileReader interface{ archiver.DecompressorBare }
 
 	switch arcFileReader := arcFileObj.(type) {

@@ -19,7 +19,7 @@ func (arc commonArchive) doUnpack(session *Session) error {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func (arc compressedFile) doUnpack(session *Session) error {
 		return err
 	}
 
-	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 	if err != nil {
 		return err
 	}

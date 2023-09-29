@@ -29,7 +29,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 		return nil, err
 	}
 
-	err = archiveFormat(&arcFileObj, pctx.getSinglePassword(), OverwriteExisting)
+	err = archiveFormat(&arcFileObj, pctx, OverwriteExisting)
 	if err != nil {
 		return nil, err
 	}

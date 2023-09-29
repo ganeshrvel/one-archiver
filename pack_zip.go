@@ -11,9 +11,11 @@ import (
 
 func createZipFile(session *Session, arc *zipArchive, fileList []string, commonParentPath string) error {
 	filename := arc.meta.Filename
-	password := arc.pack.Password
+	pctx := arc.read.passwordContext()
+
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	encryptionMethod := arc.meta.EncryptionMethod
+	password := pctx.getSinglePassword()
 
 	newZipFile, err := os.Create(filename)
 	if err != nil {
