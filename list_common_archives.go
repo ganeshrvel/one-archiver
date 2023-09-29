@@ -83,23 +83,6 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				ParentPath: GetParentDirectory(fullPath),
 				Extension:  extension(name),
 			}
-
-		// not being used
-		default:
-			fullPath := filepath.ToSlash(file.FileInfo.Name())
-			isDir := file.IsDir()
-			name := file.Name()
-
-			fileInfo = ArchiveFileInfo{
-				Mode:       file.Mode(),
-				Size:       file.Size(),
-				IsDir:      isDir,
-				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
-				Name:       name,
-				FullPath:   fullPath,
-				ParentPath: GetParentDirectory(fullPath),
-				Extension:  extension(name),
-			}
 		}
 
 		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)

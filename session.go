@@ -107,12 +107,14 @@ func (session *Session) endProgress(status ProgressStatus) {
 // todo
 // Pause the session.
 func (session *Session) Pause() {
+	session.progress.setCancelReason(ProgressCancelReasonPaused)
 	session.cancel()
 }
 
 // todo
 // Stop the session.
 func (session *Session) Stop() {
+	session.progress.setCancelReason(ProgressCancelReasonStopped)
 	session.cancel()
 }
 

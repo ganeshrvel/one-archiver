@@ -48,7 +48,6 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		return fmt.Errorf(string(ErrorCompressedFileNoFileFound))
 	}
 
-	//todo actually move the initializeProgress to very begginging or something else the ui will have a latency. show some progress like stalling or something
 	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, false)
 
 	for absolutePath, item := range zipFilePathListMap {

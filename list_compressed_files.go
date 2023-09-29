@@ -15,7 +15,7 @@ import (
 // It returns the size of the uncompressed data.
 func getCompressedFileSize(reader io.Reader, compressedFileReader *interface{ archiver.DecompressorBare }) (uncompressedFileSize int64, err error) {
 	// Create a buffer to read chunks of data from the decompressed source.
-	buf := make([]byte, 20*1024*1024) // 20MB
+	buf := make([]byte, 2*1024*1024) // 2MB
 
 	// Decompress the data by reading it through the given decompressor.
 	err = (*compressedFileReader).DecompressBare(reader, func(r io.Reader) (_ int64, err error) {

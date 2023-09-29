@@ -13,21 +13,32 @@ const (
 	ProgressStatusCompleted ProgressStatus = "Completed"
 )
 
+type ProgressCancelReason string
+
+const (
+	ProgressCancelReasonNone    ProgressCancelReason = "None"
+	ProgressCancelReasonStopped ProgressCancelReason = "Stopped"
+	ProgressCancelReasonPaused  ProgressCancelReason = "Paused"
+)
+
 type Progress struct {
-	TotalFiles                        int64          // Total number of files to be transferred.
-	SentFilesCount                    int64          // Number of files that have been transferred.
-	SentFilesCountPercentage          float64        // Percentage of files that have been transferred.
-	CurrentFilepath                   string         // Path of the current file being transferred.
-	TotalSize                         int64          // Total byte size of all files.
-	SentSize                          int64          // Total byte size that has been transferred.
-	SentSizeProgressPercentage        float64        // Percentage of the total byte size that has been transferred.
-	CurrentFileSize                   int64          // Size of the current file being transferred.
-	CurrentFileSentSize               int64          // Amount of the current file that has been transferred.
-	CurrentFileProgressSizePercentage float64        // Percentage of the current file that has been transferred.
-	StartTime                         time.Time      // Start time of the transfer.
-	ProgressStatus                    ProgressStatus // Progress status
-	CanResumeTransfer                 bool           // Indicates whether the session be resumed
-	lastSentTime                      time.Time      // Time when the last file transfer update was sent.
+	TotalFiles                        int64     // Total number of files to be transferred.
+	SentFilesCount                    int64     // Number of files that have been transferred.
+	SentFilesCountPercentage          float64   // Percentage of files that have been transferred.
+	CurrentFilepath                   string    // Path of the current file being transferred.
+	TotalSize                         int64     // Total byte size of all files.
+	SentSize                          int64     // Total byte size that has been transferred.
+	SentSizeProgressPercentage        float64   // Percentage of the total byte size that has been transferred.
+	CurrentFileSize                   int64     // Size of the current file being transferred.
+	CurrentFileSentSize               int64     // Amount of the current file that has been transferred.
+	CurrentFileProgressSizePercentage float64   // Percentage of the current file that has been transferred.
+	StartTime                         time.Time // Start time of the transfer.
+
+	ProgressStatus       ProgressStatus       // Progress status
+	ProgressCancelReason ProgressCancelReason // Reason why progress was cancelled
+
+	CanResumeTransfer bool      // Indicates whether the session be resumed
+	lastSentTime      time.Time // Time when the last file transfer update was sent.
 }
 
 // newProgress initializes and returns a new Progress object
@@ -46,8 +57,9 @@ func newProgress(totalFiles, totalSize int64) *Progress {
 		CurrentFileSentSize:               0,
 		CurrentFileProgressSizePercentage: 0,
 
-		CanResumeTransfer: true,
-		ProgressStatus:    ProgressStatusStarting,
+		CanResumeTransfer:    false,
+		ProgressStatus:       ProgressStatusStarting,
+		ProgressCancelReason: ProgressCancelReasonNone,
 
 		StartTime:    time.Now(),
 		lastSentTime: time.Time{},
@@ -137,6 +149,11 @@ func (progress *Progress) totalSizeCorrection(size int64, progressFunc *Progress
 // setStatus sets progress status
 func (progress *Progress) setStatus(status ProgressStatus) {
 	progress.ProgressStatus = status
+}
+
+// setStatus sets progress status
+func (progress *Progress) setCancelReason(reason ProgressCancelReason) {
+	progress.ProgressCancelReason = reason
 }
 
 // endProgress signals the end of the file transfer process by invoking the OnEnded function
