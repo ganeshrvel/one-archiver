@@ -57,20 +57,31 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 			isDir := file.IsDir()
 			name := file.Name()
 
+			size := file.Size()
+			if IsSymlink(file) {
+				symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+
+				if err != nil {
+					return err
+				}
+
+				size = int64(len(symlink))
+			}
+
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
-				Size:       file.Size(),
+				Size:       size,
 				IsDir:      isDir,
 				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
-				Extension:  extension(name),
+				Extension:  Extension(name),
 			}
 
 		case *rardecode.FileHeader:
 			isDir := file.IsDir()
-			fullPath := fixDirSlash(isDir, filepath.ToSlash(file.Name()))
+			fullPath := FixDirSlash(isDir, filepath.ToSlash(file.Name()))
 			name := filepath.Base(fullPath)
 
 			fileInfo = ArchiveFileInfo{
@@ -81,11 +92,11 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 				Name:       name,
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
-				Extension:  extension(name),
+				Extension:  Extension(name),
 			}
 		}
 
-		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
+		fileInfo.FullPath = FixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
 		includeFile := getFilteredFiles(
 			fileInfo, listDirectoryPath, recursive,

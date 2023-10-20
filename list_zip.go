@@ -56,10 +56,10 @@ func (arc zipArchive) list() ([]ArchiveFileInfo, error) {
 			Name:       name,
 			FullPath:   fullPath,
 			ParentPath: GetParentDirectory(fullPath),
-			Extension:  extension(name),
+			Extension:  Extension(name),
 		}
 
-		fileInfo.FullPath = fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
+		fileInfo.FullPath = FixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
 		includeFile := getFilteredFiles(
 			fileInfo, listDirectoryPath, recursive,

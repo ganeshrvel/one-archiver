@@ -66,7 +66,7 @@ func readCompressedFiles(sourceFilepath string, compressedFileReader *interface{
 	}
 
 	strippedFileName := strings.TrimRight(stat.Name(), compressFileExt)
-	fileExt := extension(strippedFileName)
+	fileExt := Extension(strippedFileName)
 	fullPath := filepath.ToSlash(strippedFileName)
 
 	afi.ModTime = stat.ModTime()

@@ -14,6 +14,7 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	destinationPath := arc.unpack.Destination
 	sourceFilepath := arc.meta.Filename
+	progressStreamDebounceTime := arc.unpack.ProgressStreamDebounceTime
 
 	var ignoreList []string
 	ignoreList = append(ignoreList, GlobalPatternDenylist...)
@@ -53,7 +54,7 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 
 		if allowFileFiltering {
 			matched := StringFilter(fileList, func(s string) bool {
-				_fName := fixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
+				_fName := FixDirSlash(fileInfo.IsDir, fileInfo.FullPath)
 
 				return subpathExists(s, _fName)
 			})
@@ -76,7 +77,7 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 		}
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, false)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, false)
 
 	for destinationFileAbsPath, file := range compressedFilePathListMap {
 		select {
@@ -87,15 +88,14 @@ func startUnpackingCompressedFiles(session *Session, arc compressedFile, arcFile
 		}
 
 		progressMetrices.updateArchiveFilesProgressCount(file.fileInfo.IsDir)
-		session.enableCtxCancel()
-		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
-
-		if err := addFileFromCompressedFileToDisk(session, &arcFileDecompressor, file.fileInfo, destinationFileAbsPath, sourceFilepath); err != nil {
+		if err := session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount, file.fileInfo.IsDir, func() error {
+			return addFileFromCompressedFileToDisk(session, &arcFileDecompressor, file.fileInfo, destinationFileAbsPath, sourceFilepath)
+		}); err != nil {
 			return err
 		}
 	}
 
-	if !exists(destinationPath) {
+	if !Exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}

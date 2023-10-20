@@ -45,7 +45,7 @@ func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchive
 					}
 
 					// then the selected folder name should be the root directory in the archive
-					if isDirectory(_fileList[0]) {
+					if IsDirectory(_fileList[0]) {
 						archiveFilesRelativePath, err := getArchiveFilesRelativePath(absFilepath, commonParentPath)
 						if err != nil {
 							return fmt.Errorf(string(ErrorInternalErrorOccured)) //todo add and return the error as well to this
@@ -66,7 +66,7 @@ func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchive
 			}
 
 			isFileADir := fileInfo.IsDir()
-			relativeFilePath = fixDirSlash(isFileADir, relativeFilePath)
+			relativeFilePath = FixDirSlash(isFileADir, relativeFilePath)
 
 			relativeFilePath = strings.TrimLeft(relativeFilePath, PathSep)
 
@@ -96,8 +96,8 @@ func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchive
 
 						isDir := _fileInfo.IsDir()
 
-						_absFilepath = fixDirSlash(isDir, _absFilepath)
-						_relativeFilePath = fixDirSlash(isDir, _relativeFilePath)
+						_absFilepath = FixDirSlash(isDir, _absFilepath)
+						_relativeFilePath = FixDirSlash(isDir, _relativeFilePath)
 
 						progressMetrices.updateArchiveProgressMetrices(_zipFilePathListMap, _absFilepath, _fileInfo.Size(), isDir)
 						_zipFilePathListMap[_absFilepath] = createArchiveFileInfo{
@@ -113,7 +113,7 @@ func processFilesForPackingArchives(zipFilePathListMap *map[string]createArchive
 				}
 			}
 
-			absFilepath = fixDirSlash(isFileADir, absFilepath)
+			absFilepath = FixDirSlash(isFileADir, absFilepath)
 
 			progressMetrices.updateArchiveProgressMetrices(_zipFilePathListMap, absFilepath, fileInfo.Size(), isFileADir)
 			_zipFilePathListMap[absFilepath] = createArchiveFileInfo{

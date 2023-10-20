@@ -107,7 +107,7 @@ func PrepareArchive(meta *ArchiveMeta, passwords []string) (PrepareArchiveInfo, 
 
 	var utilsObj ArchiveUtils
 
-	ext := extension(_meta.Filename)
+	ext := Extension(_meta.Filename)
 
 	switch ext {
 	case "rar":

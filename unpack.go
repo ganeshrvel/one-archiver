@@ -70,10 +70,10 @@ func (arc compressedFile) doUnpack(session *Session) error {
 }
 
 // StartUnpacking - Start unpacking
-func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, session *Session) error {
+func StartUnpacking(meta *ArchiveMeta, unpack *ArchiveUnpack, session *Session) error {
 
 	_meta := *meta
-	_pack := *pack
+	_pack := *unpack
 
 	var arcUnpackObj ArchiveUnpacker
 
@@ -89,7 +89,7 @@ func StartUnpacking(meta *ArchiveMeta, pack *ArchiveUnpack, session *Session) er
 		return fmt.Errorf(string(ErrorInvalidPassword))
 	}
 
-	ext := extension(_meta.Filename)
+	ext := Extension(_meta.Filename)
 
 	switch ext {
 	case "zip":

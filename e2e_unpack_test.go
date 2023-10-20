@@ -1,7 +1,7 @@
-package onearchiver
+package onearchiver_test
 
 import (
-	zip "github.com/ganeshrvel/yeka_zip"
+	. "github.com/ganeshrvel/one-archiver"
 	. "github.com/smartystreets/goconvey/convey"
 	"log"
 	"os"
@@ -106,7 +106,7 @@ func _testArchiveUnpackingInvalidPassword(_metaObj *ArchiveMeta, session *Sessio
 	})
 }
 
-func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMeta, session *Session) {
+func _testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj *ArchiveMeta, session *Session) {
 	Convey("Incorrect Password | common archives - it should not throw an error", func() {
 		_destination := newTempMocksDir("mock_test_file1", true)
 
@@ -117,8 +117,70 @@ func _testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveM
 		}
 
 		err := StartUnpacking(_metaObj, unpackObj, session)
-
 		So(err, ShouldBeNil)
+
+	})
+}
+
+func _testArchiveUnpackingInvalidPasswordZip(_metaObj *ArchiveMeta, session *Session) {
+	Convey("Incorrect Password | zip - it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+			Passwords:   []string{"wrong"},
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, session)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Incorrect Password | zip | no password - it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+			Passwords:   []string{},
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, session)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Incorrect Password | zip | empty password string- it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+			Passwords:   []string{""},
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, session)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
+	})
+
+	Convey("Incorrect Password | zip | all invalid password strings- it should throw an error", func() {
+		_destination := newTempMocksDir("mock_test_file1", true)
+
+		unpackObj := &ArchiveUnpack{
+			FileList:    []string{},
+			Destination: _destination,
+			Passwords:   []string{"", "demo"},
+		}
+
+		err := StartUnpacking(_metaObj, unpackObj, session)
+
+		So(err, ShouldBeError)
+		So(err.Error(), ShouldContainSubstring, "invalid password")
 	})
 }
 
@@ -638,7 +700,7 @@ func TestUnpacking(t *testing.T) {
 		},
 	}
 
-	session := newSession("", ph)
+	session := NewSession("", ph)
 
 	Convey("Unpacking | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
@@ -667,12 +729,21 @@ func TestUnpacking(t *testing.T) {
 		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
-	Convey("Unpacking | Multiple password Encryption - ZIP", t, func() {
+	Convey("Unpacking | Multiple password Encryption (mock_enc_multiple_password_test_file1) - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_multiple_password_test_file1.zip")
 
 		metaObj := &ArchiveMeta{Filename: filename}
 
-		passwords := []string{"1234567", "12345678", "123456789", "1234567890"}
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingCommonArchives(metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Multiple password Encryption (mock_enc_test_file1) - ZIP", t, func() {
+		filename := getTestMocksAsset("mock_enc_test_file1.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
 		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
@@ -692,6 +763,15 @@ func TestUnpacking(t *testing.T) {
 
 		passwords := []string{"1234567"}
 		_testUnpackingCommonArchives(_metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | windows Multiple password Encryption (enc legacy) - ZIP", t, func() {
+		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc_legacy.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | windows file names encrypted rar", t, func() {
@@ -856,13 +936,13 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		},
 	}
 
-	session := newSession("", ph)
+	session := NewSession("", ph)
 
 	Convey("Wrong password | Archive Unpacking - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, session)
+		_testArchiveUnpackingInvalidPasswordZip(_metaObj, session)
 	})
 
 	Convey("Wrong password | Archive Unpacking - RAR", t, func() {
@@ -876,7 +956,7 @@ func TestArchiveUnpackingPassword(t *testing.T) {
 		filename := getTestMocksAsset("mock_test_file1.tar")
 		_metaObj := &ArchiveMeta{Filename: filename}
 
-		_testArchiveUnpackingInvalidPasswordCommonArchivesAndZip(_metaObj, session)
+		_testArchiveUnpackingInvalidPasswordCommonArchives(_metaObj, session)
 	})
 }
 
@@ -912,7 +992,7 @@ func _testUnpackingSymlinkCommonArchives(metaObj *ArchiveMeta, session *Session,
 				if err != nil {
 					log.Panicf("%v\n", err)
 				}
-				So(isSymlink(lstat), ShouldBeTrue)
+				So(IsSymlink(lstat), ShouldBeTrue)
 
 				target, err := os.Readlink(symlinkPath)
 
@@ -989,7 +1069,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		},
 	}
 
-	session := newSession("e5e33d38-aaf0-4d23-afa5-40856393fdbd", ph)
+	session := NewSession("", ph)
 
 	Convey("Unpacking | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zip")
@@ -1005,8 +1085,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_stdenc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.StandardEncryption,
+			Filename: filename,
 		}
 
 		passwords := []string{"1234567"}
@@ -1017,8 +1096,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes128enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES128Encryption,
+			Filename: filename,
 		}
 
 		passwords := []string{"1234567"}
@@ -1029,8 +1107,7 @@ func TestSymlinkUnpacking(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes256enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES256Encryption,
+			Filename: filename,
 		}
 
 		passwords := []string{"1234567"}
@@ -1041,12 +1118,47 @@ func TestSymlinkUnpacking(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes192enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES192Encryption,
+			Filename: filename,
 		}
 
 		passwords := []string{"1234567"}
 		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Multiple password Encryption (std enc) - ZIP", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_stdenc_pack.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingSymlinkCommonArchives(metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Multiple password Encryption (aes128 enc) - ZIP", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes128enc_pack.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingSymlinkCommonArchives(metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Multiple password Encryption (aes192 enc) - ZIP", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes192enc_pack.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingSymlinkCommonArchives(metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Multiple password Encryption (aes256 enc) - ZIP", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_aes256enc_pack.zip")
+
+		metaObj := &ArchiveMeta{Filename: filename}
+
+		passwords := []string{"12345", "1234567", "12345678", "123456789", "1234567890"}
+		_testUnpackingSymlinkCommonArchives(metaObj, session, passwords)
 	})
 
 	Convey("Unpacking | Tar", t, func() {

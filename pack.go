@@ -28,7 +28,7 @@ func (arc zipArchive) doPack(session *Session) error {
 func (arc commonArchive) doPack(session *Session) error {
 	filename := arc.meta.Filename
 	fileList := arc.pack.FileList
-	pctx := arc.read.passwordContext()
+	pctx := arc.pack.passwordContext()
 
 	arcFileObj, err := archiver.ByExtension(filename)
 	if err != nil {
@@ -97,7 +97,7 @@ func StartPacking(meta *ArchiveMeta, pack *ArchivePack, session *Session) error 
 
 	var arcPackObj ArchivePacker
 
-	ext := extension(_meta.Filename)
+	ext := Extension(_meta.Filename)
 
 	if OverwriteExisting && FileExists(_meta.Filename) {
 		if err := os.Remove(_meta.Filename); err != nil {

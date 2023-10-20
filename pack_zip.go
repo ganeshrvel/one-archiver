@@ -11,10 +11,11 @@ import (
 
 func createZipFile(session *Session, arc *zipArchive, fileList []string, commonParentPath string) error {
 	filename := arc.meta.Filename
-	pctx := arc.read.passwordContext()
+	pctx := arc.pack.passwordContext()
+	progressStreamDebounceTime := arc.pack.ProgressStreamDebounceTime
 
 	gitIgnorePattern := arc.meta.GitIgnorePattern
-	encryptionMethod := arc.meta.EncryptionMethod
+	encryptionMethod := arc.pack.ZipEncryptionMethod
 	password := pctx.getSinglePassword()
 
 	newZipFile, err := os.Create(filename)
@@ -45,7 +46,7 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 		return err
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, true)
 
 	for destinationFileAbsPath, item := range zipFilePathListMap {
 		select {
@@ -56,10 +57,9 @@ func createZipFile(session *Session, arc *zipArchive, fileList []string, commonP
 		}
 
 		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
-		session.enableCtxCancel()
-		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
-
-		if err := addFileToZip(session, zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod); err != nil {
+		if err := session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount, item.isDir, func() error {
+			return addFileToZip(session, zipWriter, *item.fileInfo, item.absFilepath, item.relativeFilePath, password, encryptionMethod)
+		}); err != nil {
 			return err
 		}
 	}
@@ -101,7 +101,7 @@ func addFileToZip(
 		return err
 	}
 
-	if isSymlink(fileInfo) {
+	if IsSymlink(fileInfo) {
 		originalTargetPath, err := os.Readlink(filename)
 		if err != nil {
 			return err

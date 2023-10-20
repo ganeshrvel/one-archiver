@@ -2,8 +2,9 @@ package onearchiver
 
 import (
 	"fmt"
-	"github.com/ganeshrvel/yeka_zip"
+	zip "github.com/ganeshrvel/yeka_zip"
 	"github.com/kr/pretty"
+	"log"
 )
 
 func ListArchive(filename string) []ArchiveFileInfo {
@@ -66,16 +67,16 @@ func TestPrepareArchive() {
 	fmt.Printf("Result; IsPasswordRequired: %v, IsValidPassword: %v, IsSinglePasswordMode: %v\n", result.IsPasswordRequired, result.IsValidPassword, result.IsSinglePasswordMode)
 }
 
-func Pack(filename string, fileList []string, session *Session) {
+func TestPack(filename string, fileList []string, session *Session) {
 	am := &ArchiveMeta{
 		Filename:         filename,
 		GitIgnorePattern: []string{},
-		EncryptionMethod: zip.StandardEncryption,
 	}
 
 	ap := &ArchivePack{
-		FileList: fileList,
-		Password: "",
+		FileList:            fileList,
+		Password:            "",
+		ZipEncryptionMethod: zip.StandardEncryption,
 	}
 
 	err := StartPacking(am, ap, session)
@@ -88,7 +89,7 @@ func Pack(filename string, fileList []string, session *Session) {
 	fmt.Printf("Result: %+v\n", "Success")
 }
 
-func Unpack(filename, tempDir string, session *Session) {
+func TestUnpack(filename, tempDir string, session *Session) {
 	//filename := getTestMocksAsset("mock_test_file1.zip")
 	//tempDir := newTempMocksDir("arc_test_pack/", false)
 
@@ -97,7 +98,7 @@ func Unpack(filename, tempDir string, session *Session) {
 		GitIgnorePattern: []string{},
 	}
 
-	passwords := []string{"1234567", "12345678", "123456789", "1234567890"}
+	passwords := []string{"12345678", "123456789", "1234567890", "1234567"}
 
 	au := &ArchiveUnpack{
 		FileList:    []string{},
@@ -106,8 +107,9 @@ func Unpack(filename, tempDir string, session *Session) {
 	}
 
 	err := StartUnpacking(am, au, session)
+
 	if err != nil {
-		fmt.Printf("\nError occured: %+v\n", err)
+		log.Panic(err)
 
 		return
 	}

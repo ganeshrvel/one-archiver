@@ -1,6 +1,8 @@
-package onearchiver
+package onearchiver_test
 
 import (
+	. "github.com/ganeshrvel/one-archiver"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -64,7 +66,7 @@ func TestUtils(t *testing.T) {
 		}
 
 		for _, f := range sl {
-			ext := extension(f.filename)
+			ext := Extension(f.filename)
 
 			So(ext, ShouldEqual, f.ext)
 		}

@@ -16,6 +16,7 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 	destinationPath := arc.unpack.Destination
 	gitIgnorePattern := arc.meta.GitIgnorePattern
 	fileList := arc.unpack.FileList
+	progressStreamDebounceTime := arc.unpack.ProgressStreamDebounceTime
 
 	pctx := arc.unpack.passwordContext()
 
@@ -46,7 +47,7 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 
 		if allowFileFiltering {
 			matched := StringFilter(fileList, func(s string) bool {
-				filterFName := fixDirSlash(fileInfo.IsDir(), fileName)
+				filterFName := FixDirSlash(fileInfo.IsDir(), fileName)
 
 				return subpathExists(s, filterFName)
 			})
@@ -71,7 +72,7 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 		}
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, true)
 
 	for destinationFileAbsPath, file := range zipFilePathListMap {
 		select {
@@ -82,15 +83,14 @@ func startUnpackingZip(session *Session, arc zipArchive) error {
 		}
 
 		progressMetrices.updateArchiveFilesProgressCount(file.zipFileInfo.FileInfo().IsDir())
-		session.enableCtxCancel()
-		session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount)
-
-		if err := makeAddFileFromZipToDisk(session, file.zipFileInfo, destinationFileAbsPath, pctx); err != nil {
+		if err := session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount, file.zipFileInfo.FileInfo().IsDir(), func() error {
+			return makeAddFileFromZipToDisk(session, file.zipFileInfo, destinationFileAbsPath, pctx)
+		}); err != nil {
 			return err
 		}
 	}
 
-	if !exists(destinationPath) {
+	if !Exists(destinationPath) {
 		if err := os.Mkdir(destinationPath, 0755); err != nil {
 			return err
 		}
@@ -105,11 +105,15 @@ func makeAddFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.Fil
 	isEncrypted := zippedFileToExtractInfo.IsEncrypted()
 
 	if !isEncrypted {
-		return addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, "")
+		return addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, "", isEncrypted)
+	}
+
+	if !pctx.hasPasswords() {
+		return fmt.Errorf(string(ErrorInvalidPassword))
 	}
 
 	for _, password := range pctx.passwords {
-		err := addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, password)
+		err := addFileFromZipToDisk(session, zippedFileToExtractInfo, destinationFileAbsPath, password, isEncrypted)
 
 		if err == nil {
 			return nil
@@ -122,11 +126,15 @@ func makeAddFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.Fil
 		return err
 	}
 
-	return nil
+	return fmt.Errorf(string(ErrorInvalidPassword))
 }
 
-func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, destinationFileAbsPath string, password string) error {
-	if len(password) > 0 {
+func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, destinationFileAbsPath string, password string, isEncrypted bool) error {
+	if isEncrypted {
+		if len(password) < 1 {
+			return fmt.Errorf(string(ErrorInvalidPassword))
+		}
+
 		zippedFileToExtractInfo.SetPassword(password)
 	}
 
@@ -135,9 +143,17 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 		return err
 	}
 	defer func() {
-		if err := fileToExtract.Close(); err != nil {
+		err := fileToExtract.Close()
+
+		if err != nil {
+			zipPasswordErr := zipIncorrectPasswordErrorHandling(err, isEncrypted)
+			if zipPasswordErr != nil {
+				return
+			}
+
 			fmt.Printf("%v\n", err)
 		}
+
 	}()
 
 	if zippedFileToExtractInfo.FileInfo().IsDir() {
@@ -154,9 +170,13 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 		}
 	}
 
-	if isSymlink(zippedFileToExtractInfo.FileInfo()) {
+	if IsSymlink(zippedFileToExtractInfo.FileInfo()) {
 		originalTargetPathBytes, err := io.ReadAll(fileToExtract)
 		if err != nil {
+			zipPasswordErr := zipIncorrectPasswordErrorHandling(err, isEncrypted)
+			if zipPasswordErr != nil {
+				return zipPasswordErr
+			}
 			return err
 		}
 
@@ -164,8 +184,9 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 		targetPathToWrite := filepath.ToSlash(originalTargetPath)
 
 		err = os.Symlink(targetPathToWrite, destinationFileAbsPath)
-		if errors.Is(err, zip.ErrChecksum) {
-			return fmt.Errorf(string(ErrorInvalidPassword))
+		zipPasswordErr := zipIncorrectPasswordErrorHandling(err, isEncrypted)
+		if zipPasswordErr != nil {
+			return zipPasswordErr
 		}
 		if err != nil {
 			return err
@@ -185,11 +206,31 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 	// todo add a check if continue of error then dont return
 	numBytesWritten, err := SessionAwareCopy(session, writer, fileToExtract, zippedFileToExtractInfo.FileInfo().IsDir(), zippedFileToExtractInfo.FileInfo().Size())
 
-	if errors.Is(err, zip.ErrChecksum) {
+	zipPasswordErr := zipIncorrectPasswordErrorHandling(err, isEncrypted)
+	if zipPasswordErr != nil {
 		session.revertSizeProgress(numBytesWritten)
 
-		return fmt.Errorf(string(ErrorInvalidPassword))
+		return zipPasswordErr
 	}
 
 	return err
+}
+
+func zipIncorrectPasswordErrorHandling(zipError error, isEncrypted bool) error {
+	if zipError != nil && isEncrypted {
+		if errors.Is(zipError, zip.ErrChecksum) {
+			return fmt.Errorf(string(ErrorInvalidPassword))
+		}
+
+		if strings.Contains(zipError.Error(), "corrupt input") {
+			return fmt.Errorf(string(ErrorInvalidPassword))
+		}
+
+		if strings.Contains(zipError.Error(), "unexpected EOF") {
+			return fmt.Errorf(string(ErrorInvalidPassword))
+		}
+
+	}
+
+	return nil
 }

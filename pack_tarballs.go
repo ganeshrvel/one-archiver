@@ -13,6 +13,7 @@ import (
 func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ archiver.Writer }, fileList *[]string, commonParentPath string) error {
 	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
+	progressStreamDebounceTime := arc.pack.ProgressStreamDebounceTime
 
 	out, err := os.Create(destinationFilename)
 	if err != nil {
@@ -36,7 +37,7 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		return err
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, true)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, true)
 
 	for absolutePath, item := range zipFilePathListMap {
 		select {
@@ -47,10 +48,9 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		}
 
 		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
-		session.enableCtxCancel()
-		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
-
-		if err := addFileToTarBall(session, &arcFileObj, *item.fileInfo, item.absFilepath, item.relativeFilePath, item.isDir); err != nil {
+		if err := session.fileProgress(absolutePath, progressMetrices.filesProgressCount, item.isDir, func() error {
+			return addFileToTarBall(session, &arcFileObj, *item.fileInfo, item.absFilepath, item.relativeFilePath, item.isDir)
+		}); err != nil {
 			return err
 		}
 	}
@@ -70,7 +70,7 @@ func addFileToTarBall(session *Session, arcFileObj *interface{ archiver.Writer }
 	}
 
 	var fileToArchive io.ReadCloser
-	if isSymlink(fileInfo) {
+	if IsSymlink(fileInfo) {
 		originalTargetPath, err := os.Readlink(sourceFilename)
 		if err != nil {
 			return err

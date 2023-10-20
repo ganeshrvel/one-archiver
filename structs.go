@@ -26,7 +26,6 @@ func (fi ArchiveFileInfo) Kind() string {
 type ArchiveMeta struct {
 	Filename         string
 	GitIgnorePattern []string
-	EncryptionMethod zip.EncryptionMethod
 }
 
 type ArchiveRead struct {
@@ -43,8 +42,10 @@ func (ar *ArchiveRead) passwordContext() *PasswordContext {
 
 // ArchivePack holds configuration details for packing files into an archive.
 type ArchivePack struct {
-	Password string   // Password to encrypt the archive.
-	FileList []string // List of specific files to include in the archive.
+	Password                   string // Password to encrypt the archive.
+	ZipEncryptionMethod        zip.EncryptionMethod
+	FileList                   []string // List of specific files to include in the archive.
+	ProgressStreamDebounceTime int64
 }
 
 func (ap *ArchivePack) passwordContext() *PasswordContext {
@@ -52,17 +53,18 @@ func (ap *ArchivePack) passwordContext() *PasswordContext {
 }
 
 type ArchiveUnpack struct {
-	Passwords   []string // List of passwords to use for encrypted archives.
-	FileList    []string // List of specific files to extract from the archive.
-	Destination string   // Destination path where the files should be extracted.
+	Passwords                  []string // List of passwords to use for encrypted archives.
+	FileList                   []string // List of specific files to extract from the archive.
+	Destination                string   // Destination path where the files should be extracted.
+	ProgressStreamDebounceTime int64
 }
 
 func (au *ArchiveUnpack) passwordContext() *PasswordContext {
 	return &PasswordContext{passwords: au.Passwords}
 }
 
-type filePathListSortInfo struct {
-	splittedPaths [2]string
+type FilePathListSortInfo struct {
+	SplittedPaths [2]string
 	IsDir         bool
 	Mode          os.FileMode
 	Size          int64

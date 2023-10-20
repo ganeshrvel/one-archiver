@@ -15,7 +15,7 @@ func sortFiles(list []ArchiveFileInfo, orderBy ArchiveOrderBy, orderDir ArchiveO
 
 	switch orderBy {
 	case OrderByFullPath:
-		return sortPath(list, orderDir)
+		return ConvertAndSortByPath(list, orderDir)
 
 	case OrderByName:
 		sort.SliceStable(list, func(i, j int) bool {
@@ -114,7 +114,7 @@ func GetArchiveFileList(meta *ArchiveMeta, read *ArchiveRead) ([]ArchiveFileInfo
 		return nil, fmt.Errorf(string(ErrorInvalidPassword))
 	}
 
-	ext := extension(meta.Filename)
+	ext := Extension(meta.Filename)
 
 	// add a trailing slash to [listDirectoryPath] if missing
 	if _read.ListDirectoryPath != "" && !strings.HasSuffix(_read.ListDirectoryPath, PathSep) {

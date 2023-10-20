@@ -1,7 +1,11 @@
-package onearchiver
+package onearchiver_test
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	. "github.com/ganeshrvel/one-archiver"
+	"github.com/samber/lo"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,13 +24,13 @@ func getTestMocksAsset(_filePath string) string {
 
 	resultPath = fmt.Sprintf("%s%s", resultPath, _filePath)
 
-	if exist := exists(resultPath); !exist {
+	if exist := Exists(resultPath); !exist {
 		fi, err := os.Lstat(resultPath)
 		if err != nil {
 			log.Panicf("\ninvalid lstat: %s\n", err)
 		}
 
-		if isSymlink(fi) {
+		if IsSymlink(fi) {
 			return resultPath
 		}
 
@@ -59,7 +63,7 @@ func newTempMocksAsset(_filePath string) string {
 
 	resultPath := fmt.Sprintf("%s/tests/mocks-build/", currentDir)
 
-	if exist := isDirectory(resultPath); !exist {
+	if exist := IsDirectory(resultPath); !exist {
 		_, err := os.Create(resultPath)
 
 		if err != nil {
@@ -88,7 +92,7 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 			log.Panic(err)
 		}
 
-		if exist := isDirectory(resultPath); !exist {
+		if exist := IsDirectory(resultPath); !exist {
 			err = os.MkdirAll(resultPath, os.ModePerm)
 
 			if err != nil {
@@ -97,7 +101,7 @@ func newTempMocksDir(_dirPath string, resetDir bool) string {
 		}
 	}
 
-	if exist := isDirectory(resultPath); !exist {
+	if exist := IsDirectory(resultPath); !exist {
 		err := os.MkdirAll(resultPath, os.ModePerm)
 
 		if err != nil {
@@ -122,7 +126,7 @@ func testAssetDir(_dirPath string, resetDir bool) string {
 			log.Panic(err)
 		}
 
-		if exist := isDirectory(_dirPath); !exist {
+		if exist := IsDirectory(_dirPath); !exist {
 			err = os.MkdirAll(_dirPath, os.ModePerm)
 
 			if err != nil {
@@ -131,7 +135,7 @@ func testAssetDir(_dirPath string, resetDir bool) string {
 		}
 	}
 
-	if exist := isDirectory(_dirPath); !exist {
+	if exist := IsDirectory(_dirPath); !exist {
 		err := os.MkdirAll(_dirPath, os.ModePerm)
 
 		if err != nil {
@@ -143,7 +147,7 @@ func testAssetDir(_dirPath string, resetDir bool) string {
 }
 
 func listUnpackedDirectory(destination string) (path []string) {
-	var filePathList []filePathListSortInfo
+	var filePathList []FilePathListSortInfo
 
 	err := filepath.Walk(destination, func(path string, info os.FileInfo, err error) error {
 		if destination == path {
@@ -156,25 +160,25 @@ func listUnpackedDirectory(destination string) (path []string) {
 			pathSplitted = [2]string{filepath.Dir(path), filepath.Base(path)}
 
 		} else {
-			path = fixDirSlash(true, path)
+			path = FixDirSlash(true, path)
 			_dir := filepath.Dir(path)
 
 			pathSplitted = [2]string{_dir, ""}
 		}
 
-		filePathList = append(filePathList, filePathListSortInfo{
+		filePathList = append(filePathList, FilePathListSortInfo{
 			IsDir:         info.IsDir(),
 			FullPath:      path,
-			splittedPaths: pathSplitted,
+			SplittedPaths: pathSplitted,
 		})
 
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
-	_sortPath(&filePathList, OrderDirAsc)
+	SortBySplittedPath(&filePathList, OrderDirAsc)
 
 	var itemsArr []string
 
@@ -197,7 +201,7 @@ func getContentsUnpackedDirectory(destination string, fileContents *[]map[string
 		_path := strings.Replace(path, destination, "", -1)
 		_path = strings.TrimLeft(_path, "/")
 
-		if isSymlink(info) {
+		if IsSymlink(info) {
 			return nil
 		}
 
@@ -212,9 +216,8 @@ func getContentsUnpackedDirectory(destination string, fileContents *[]map[string
 					(*fileContents)[idx] = map[string][]byte{_path: data}
 				}
 			}
-
 		} else {
-			path = fixDirSlash(true, path)
+			path = FixDirSlash(true, path)
 
 			for idx, m := range *fileContents {
 				if _, exists := m[_path]; exists {
@@ -227,11 +230,48 @@ func getContentsUnpackedDirectory(destination string, fileContents *[]map[string
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
+
 }
 
 func MatchRegex(input, pattern string) bool {
 	match, _ := regexp.MatchString(pattern, input)
 	return match
+}
+
+func getFilesInDirectory(fullpath string, filter []string) *map[string]os.FileInfo {
+
+	fileInfo := make(map[string]os.FileInfo)
+
+	err := filepath.Walk(fullpath, func(path string, info os.FileInfo, err error) error {
+
+		// dont returned parent directory
+		if fullpath == path {
+			return nil
+		}
+
+		// if filter is present then only the ones in the filter will be returned
+		if len(filter) > 0 {
+			if lo.Contains(filter, path) {
+				fileInfo[path] = info
+			}
+			return nil
+		}
+
+		// else return all fileinfo inside the directory
+		fileInfo[path] = info
+
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return &fileInfo
+}
+
+func GetMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
 }

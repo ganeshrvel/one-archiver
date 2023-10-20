@@ -1,7 +1,7 @@
-package onearchiver
+package onearchiver_test
 
 import (
-	"github.com/ganeshrvel/yeka_zip"
+	. "github.com/ganeshrvel/one-archiver"
 	. "github.com/smartystreets/goconvey/convey"
 	"path/filepath"
 	"strings"
@@ -29,6 +29,7 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 		Convey("gitIgnore | 1 - it should not throw an error", func() {
 			_listObj := &ArchiveRead{
 				ListDirectoryPath: "",
+				Passwords:         passwords,
 			}
 
 			_metaObj.GitIgnorePattern = []string{destinationFilename}
@@ -51,6 +52,7 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 		Convey("gitIgnore | 2  - it should not throw an error", func() {
 			_listObj := &ArchiveRead{
 				ListDirectoryPath: "",
+				Passwords:         passwords,
 			}
 
 			_metaObj.GitIgnorePattern = []string{"some dummy"}
@@ -77,6 +79,7 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 			Recursive:         false,
 			OrderBy:           OrderByName,
 			OrderDir:          OrderDirDesc,
+			Passwords:         passwords,
 		}
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
@@ -100,6 +103,7 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 			Recursive:         false,
 			OrderBy:           OrderByName,
 			OrderDir:          OrderDirDesc,
+			Passwords:         passwords,
 		}
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
@@ -771,7 +775,7 @@ func _testArchiveListingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMet
 func _testOrderByFullPathListing() {
 	Convey("OrderByFullPath", func() {
 		Convey("Asc | 1 - it should not throw an error", func() {
-			var filePathList []filePathListSortInfo
+			var filePathList []FilePathListSortInfo
 
 			list := []string{"A/file1.txt",
 				"A/B/C/D/file3.txt",
@@ -807,14 +811,14 @@ func _testOrderByFullPathListing() {
 					pathSplitted = [2]string{filepath.Dir(x), ""}
 				}
 
-				filePathList = append(filePathList, filePathListSortInfo{
+				filePathList = append(filePathList, FilePathListSortInfo{
 					IsDir:         isDir,
 					FullPath:      x,
-					splittedPaths: pathSplitted,
+					SplittedPaths: pathSplitted,
 				})
 			}
 
-			_sortPath(&filePathList, OrderDirAsc)
+			SortBySplittedPath(&filePathList, OrderDirAsc)
 
 			assertionArr := []string{"A/file1.txt", "A/file2.txt", "A/file3.txt", "A/file5.txt", "A/B/", "A/B/123.txt", "A/B/file1.txt", "A/B/file2.txt", "A/B/file2.txt", "A/B/C/file1.txt", "A/B/C/D/file1.txt", "A/B/C/D/file3.txt", "A/W/file1.txt", "A/W/X/file1.txt", "A/W/X/Y/file1.txt", "A/W/X/Y/Z/file1.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/1/2/", "mock_dir1/2/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b/"}
 
@@ -828,7 +832,7 @@ func _testOrderByFullPathListing() {
 		})
 
 		Convey("Asc | 2 - it should not throw an error", func() {
-			var filePathList []filePathListSortInfo
+			var filePathList []FilePathListSortInfo
 
 			list := []string{"/A/file1.txt",
 				"/A/B/C/D/file3.txt",
@@ -864,14 +868,14 @@ func _testOrderByFullPathListing() {
 					pathSplitted = [2]string{filepath.Dir(x), ""}
 				}
 
-				filePathList = append(filePathList, filePathListSortInfo{
+				filePathList = append(filePathList, FilePathListSortInfo{
 					IsDir:         isDir,
 					FullPath:      x,
-					splittedPaths: pathSplitted,
+					SplittedPaths: pathSplitted,
 				})
 			}
 
-			_sortPath(&filePathList, OrderDirDesc)
+			SortBySplittedPath(&filePathList, OrderDirDesc)
 
 			assertionArr := []string{"/mock_dir1/3/2/b/", "/mock_dir1/3/2/", "/mock_dir1/3/b.txt", "/mock_dir1/2/", "/mock_dir1/1/2/", "/mock_dir1/1/a.txt", "/mock_dir1/1/", "/A/W/X/Y/Z/file1.txt", "/A/W/X/Y/file1.txt", "/A/W/X/file1.txt", "/A/W/file1.txt", "/A/B/C/D/file3.txt", "/A/B/C/D/file1.txt", "/A/B/C/file1.txt", "/A/B/file2.txt", "/A/B/file2.txt", "/A/B/file1.txt", "/A/B/123.txt", "/A/B/", "/A/file3.txt", "/A/file2.txt", "/A/file1.txt"}
 
@@ -885,7 +889,7 @@ func _testOrderByFullPathListing() {
 		})
 
 		Convey("Asc | 3 - it should not throw an error", func() {
-			var filePathList []filePathListSortInfo
+			var filePathList []FilePathListSortInfo
 
 			list := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
 
@@ -900,14 +904,14 @@ func _testOrderByFullPathListing() {
 					pathSplitted = [2]string{filepath.Dir(x), ""}
 				}
 
-				filePathList = append(filePathList, filePathListSortInfo{
+				filePathList = append(filePathList, FilePathListSortInfo{
 					IsDir:         isDir,
 					FullPath:      x,
-					splittedPaths: pathSplitted,
+					SplittedPaths: pathSplitted,
 				})
 			}
 
-			_sortPath(&filePathList, OrderDirAsc)
+			SortBySplittedPath(&filePathList, OrderDirAsc)
 
 			assertionArr := []string{"mock_dir1/", "mock_dir1/a.txt", "mock_dir1/1/", "mock_dir1/1/a.txt", "mock_dir1/2/", "mock_dir1/2/b.txt", "mock_dir1/3/", "mock_dir1/3/b.txt", "mock_dir1/3/2/", "mock_dir1/3/2/b.txt"}
 
@@ -921,7 +925,7 @@ func _testOrderByFullPathListing() {
 		})
 
 		Convey("Desc | 1 - it should not throw an error", func() {
-			var filePathList []filePathListSortInfo
+			var filePathList []FilePathListSortInfo
 
 			list := []string{"A/file1.txt",
 				"A/B/C/D/file3.txt",
@@ -957,14 +961,14 @@ func _testOrderByFullPathListing() {
 					pathSplitted = [2]string{filepath.Dir(x), ""}
 				}
 
-				filePathList = append(filePathList, filePathListSortInfo{
+				filePathList = append(filePathList, FilePathListSortInfo{
 					IsDir:         isDir,
 					FullPath:      x,
-					splittedPaths: pathSplitted,
+					SplittedPaths: pathSplitted,
 				})
 			}
 
-			_sortPath(&filePathList, OrderDirDesc)
+			SortBySplittedPath(&filePathList, OrderDirDesc)
 
 			assertionArr := []string{"mock_dir1/3/2/b/", "mock_dir1/3/2/", "mock_dir1/3/b.txt", "mock_dir1/2/", "mock_dir1/1/2/", "mock_dir1/1/a.txt", "mock_dir1/1/", "A/W/X/Y/Z/file1.txt", "A/W/X/Y/file1.txt", "A/W/X/file1.txt", "A/W/file1.txt", "A/B/C/D/file3.txt", "A/B/C/D/file1.txt", "A/B/C/file1.txt", "A/B/file2.txt", "A/B/file2.txt", "A/B/file1.txt", "A/B/123.txt", "A/B/", "A/file3.txt", "A/file2.txt", "A/file1.txt"}
 
@@ -1088,7 +1092,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing - Encrypted ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename, EncryptionMethod: zip.StandardEncryption}
+		_metaObj := &ArchiveMeta{Filename: filename}
 
 		_testArchiveListing(_metaObj, false, nil, []string{})
 	})
@@ -1486,8 +1490,7 @@ func TestSymlinkListing(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_stdenc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.StandardEncryption,
+			Filename: filename,
 		}
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
@@ -1497,8 +1500,7 @@ func TestSymlinkListing(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes128enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES128Encryption,
+			Filename: filename,
 		}
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
@@ -1508,8 +1510,7 @@ func TestSymlinkListing(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes256enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES256Encryption,
+			Filename: filename,
 		}
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
@@ -1519,8 +1520,7 @@ func TestSymlinkListing(t *testing.T) {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes192enc_pack.zip")
 
 		_metaObj := &ArchiveMeta{
-			Filename:         filename,
-			EncryptionMethod: zip.AES192Encryption,
+			Filename: filename,
 		}
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})

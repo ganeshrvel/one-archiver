@@ -21,7 +21,7 @@ func FileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func exists(filename string) bool {
+func Exists(filename string) bool {
 	_, err := os.Stat(filename)
 
 	return !os.IsNotExist(err)
@@ -105,7 +105,7 @@ func isFile(name string) bool {
 	return false
 }
 
-func isDirectory(name string) bool {
+func IsDirectory(name string) bool {
 	if fi, err := os.Stat(name); err == nil {
 		if fi.Mode().IsDir() {
 			return true
@@ -114,7 +114,7 @@ func isDirectory(name string) bool {
 	return false
 }
 
-func fixDirSlash(isDir bool, absFilepath string) string {
+func FixDirSlash(isDir bool, absFilepath string) string {
 	if isDir && !strings.HasSuffix(absFilepath, PathSep) {
 		absFilepath = fmt.Sprintf("%s%s", absFilepath, PathSep)
 	}
@@ -137,7 +137,7 @@ func indexExists(arr interface{}, index int) bool {
 	return false
 }
 
-func isSymlink(fi os.FileInfo) bool {
+func IsSymlink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeSymlink != 0
 }
 
@@ -147,6 +147,16 @@ func Percent(partial, total float64) float64 {
 	}
 
 	return (partial / total) * 100
+}
+
+// TransferRatePercent calculates the transfer rate percentage.
+// If both the total and partial file sizes are 0, it returns 100% as completed.
+func TransferRatePercent(partial, total float64) float64 {
+	if total == 0 && partial == 0 {
+		return 100
+	}
+
+	return Percent(partial, total)
 }
 
 func StringFilter(x []string, f func(string) bool) []string {
@@ -190,7 +200,7 @@ func GetParentDirectory(fullPath string) string {
 	return pdSplit
 }
 
-func extension(filename string) string {
+func Extension(filename string) string {
 	_, _filename := filepath.Split(filename)
 
 	f := strings.Split(_filename, ".")

@@ -10,6 +10,7 @@ import (
 func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor interface{ archiver.CompressorBare }, fileList *[]string) error {
 	destinationFilename := arc.meta.Filename
 	gitIgnorePattern := arc.meta.GitIgnorePattern
+	progressStreamDebounceTime := arc.pack.ProgressStreamDebounceTime
 	sourceFilepath := ""
 
 	if len(*fileList) < 1 {
@@ -23,7 +24,7 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 	if len(*fileList) == 1 {
 		sourceFilepath = (*fileList)[0]
 
-		if isDirectory(sourceFilepath) {
+		if IsDirectory(sourceFilepath) {
 			return fmt.Errorf(string(ErrorCompressedFileOnlyFileAllowed))
 		}
 	}
@@ -48,7 +49,7 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		return fmt.Errorf(string(ErrorCompressedFileNoFileFound))
 	}
 
-	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, false)
+	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, false)
 
 	for absolutePath, item := range zipFilePathListMap {
 		select {
@@ -59,10 +60,9 @@ func packCompressedFile(session *Session, arc *commonArchive, arcFileCompressor 
 		}
 
 		progressMetrices.updateArchiveFilesProgressCount(item.isDir)
-		session.enableCtxCancel()
-		session.fileProgress(absolutePath, progressMetrices.filesProgressCount)
-
-		if err := addFileToCompressedFile(session, &arcFileCompressor, destinationFileWriter, item.absFilepath); err != nil {
+		if err := session.fileProgress(absolutePath, progressMetrices.filesProgressCount, item.isDir, func() error {
+			return addFileToCompressedFile(session, &arcFileCompressor, destinationFileWriter, item.absFilepath)
+		}); err != nil {
 			return err
 		}
 	}

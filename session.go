@@ -36,12 +36,10 @@ type Session struct {
 	isCtxCancelEnabled bool            // Flag to check if context cancellation is enabled.
 	cancelMutex        sync.Mutex      // Mutex for protecting concurrent access to isCtxCancelEnabled field.
 	cancelFuncMutex    sync.Mutex      // Mutex for protecting concurrent access to the cancelFunc in contextHandler.
-
-	// todo add ;logic for IsResumable     bool
 }
 
-// newSession initializes a new session with the given ID
-func newSession(sessionId string, progressFunc *ProgressFunc) *Session {
+// NewSession initializes a new session with the given ID
+func NewSession(sessionId string, progressFunc *ProgressFunc) *Session {
 	return &Session{
 		progress:           nil,
 		id:                 sessionId,
@@ -52,21 +50,36 @@ func newSession(sessionId string, progressFunc *ProgressFunc) *Session {
 }
 
 // initializeProgress sets up the progress for the session
-func (session *Session) initializeProgress(totalFiles, totalSize int64, canResumeTransfer bool) *Progress {
-	session.progress = newProgress(totalFiles, totalSize)
+func (session *Session) initializeProgress(totalFiles, totalSize, progressStreamDebounceTime int64, canResumeTransfer bool) *Progress {
+	session.progress = newProgress(totalFiles, totalSize, progressStreamDebounceTime)
 	session.progress.CanResumeTransfer = canResumeTransfer
 
 	return session.progress
 }
 
-// fileProgress updates the progress of files count for the session.
-func (session *Session) fileProgress(absolutePath string, filesProgressCount int64) {
-	session.progress.fileProgress(absolutePath, filesProgressCount, session.ProgressFunc)
+// fileProgress wraps the execution of a file operation, updating the progress
+// before and after the operation.
+func (session *Session) fileProgress(absolutePath string, filesProgressCount int64, isDir bool, fn func() error) error {
+	session.enableCtxCancel()
+
+	if isDir {
+		return fn()
+	}
+
+	session.progress.fileProgressStart(absolutePath, session.ProgressFunc)
+	if err := fn(); err != nil {
+		return err
+	}
+
+	session.progress.fileProgressEnd(filesProgressCount, session.ProgressFunc)
+
+	return nil
 }
 
 // symlinkSizeProgress updates the size (in bytes) progress, of symlink, for the session.
 func (session *Session) symlinkSizeProgress(originalTargetPath, targetPathToWrite string) {
 	targetPathSizeToWrite := int64(len(targetPathToWrite))
+
 	correctionSize := targetPathSizeToWrite - int64(len(originalTargetPath))
 
 	// Symlinks within an archive can undergo modifications to fit system-specific symlink creation criteria.
