@@ -3,6 +3,7 @@ package onearchiver
 import (
 	"fmt"
 	"github.com/mitchellh/go-homedir"
+	"github.com/nwaples/rardecode"
 	"log"
 	"os"
 	"path"
@@ -139,6 +140,10 @@ func indexExists(arr interface{}, index int) bool {
 
 func IsSymlink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeSymlink != 0
+}
+
+func IsRarSymlink(h *rardecode.FileHeader) bool {
+	return h.Attributes == 1056
 }
 
 func Percent(partial, total float64) float64 {

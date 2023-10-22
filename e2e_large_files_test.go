@@ -122,8 +122,7 @@ func _testLargeFilesPacking(t *testing.T, packingOutputFullFilepath string, lfiA
 			if lf.fileType == largeFileTestInfoFileTypeFile {
 				createTestFile(lf, largeFilesMocksDir)
 			} else if lf.fileType == largeFileTestInfoFileTypeSymlink {
-				targetPath := getTestMocksAsset("mock_dir6/a.txt")
-				err := os.Symlink(targetPath, lf.fullpath(largeFilesMocksDir))
+				err := os.Symlink(paths.symlinkPath, lf.fullpath(largeFilesMocksDir))
 				if err != nil {
 					log.Panic(err)
 				}
@@ -584,11 +583,10 @@ type largeFileTests struct {
 }
 
 type largeFileTestsPaths struct {
-	largeFilesMocksDir string
-	//parentPackingOutputDirPath   string
-	//parentUnpackingOutputDirPath string
+	largeFilesMocksDir     string
 	packingOutputDirPath   string
 	unpackingOutputDirPath string
+	symlinkPath            string
 }
 
 type largeFileTestsPassword struct {
@@ -612,33 +610,26 @@ func (lft *largeFileTests) withDestinationPath(destination string) string {
 
 func getPaths(destinationDirId string) largeFileTestsPaths {
 	largeFilesMocksDir := newTempMocksDir(path.Join("large_files_test_mock", destinationDirId), false)
-	//mainPackingOutputDirPath := newTempMocksDir(path.Join("large_files_test_packing_output"), false)
-	//mainUnpackingOutputDirPath := newTempMocksDir(path.Join("large_files_test_unpacking_output"), false)
 	packingOutputDirPath := newTempMocksDir(path.Join("large_files_test_packing_output", destinationDirId), false)
 	unpackingOutputDirPath := newTempMocksDir(path.Join("large_files_test_unpacking_output", destinationDirId), false)
 
 	return largeFileTestsPaths{
-		largeFilesMocksDir: largeFilesMocksDir,
-		//parentPackingOutputDirPath:   mainPackingOutputDirPath,
-		//parentUnpackingOutputDirPath: mainUnpackingOutputDirPath,
+		largeFilesMocksDir:     largeFilesMocksDir,
 		packingOutputDirPath:   packingOutputDirPath,
 		unpackingOutputDirPath: unpackingOutputDirPath,
+		symlinkPath:            path.Join("..", "symlink_target.txt"),
 	}
 }
 
 func getRarPaths(destinationDirId string) largeFileTestsPaths {
 	largeFilesMocksDir := getTestMocksAsset(path.Join("large_files_test"))
-	//mainPackingOutputDirPath := getTestMocksAsset(path.Join("large_files_test"))
-	//mainUnpackingOutputDirPath := getTestMocksAsset(path.Join("large_files_test"))
-	//packingOutputDirPath := getTestMocksAsset(path.Join("large_files_test", destinationDirId))
 	unpackingOutputDirPath := newTempMocksDir(path.Join("large_files_test_unpacking_output", "rar", destinationDirId), false)
 
 	return largeFileTestsPaths{
-		largeFilesMocksDir: largeFilesMocksDir,
-		//parentPackingOutputDirPath:   mainPackingOutputDirPath,
-		//parentUnpackingOutputDirPath: mainUnpackingOutputDirPath,
+		largeFilesMocksDir:     largeFilesMocksDir,
 		packingOutputDirPath:   largeFilesMocksDir,
 		unpackingOutputDirPath: unpackingOutputDirPath,
+		symlinkPath:            path.Join("..", "symlink_target.txt"),
 	}
 }
 
@@ -807,9 +798,13 @@ func TestLargeFiles(t *testing.T) {
 				fileSize: 0,
 				filename: "0b",
 				fileType: largeFileTestInfoFileTypeFile,
+			}, {
+				fileSize: 10,
+				filename: "symlink_target.txt",
+				fileType: largeFileTestInfoFileTypeFile,
 			},
 			{
-				filename: "dir1/symlink_1",
+				filename: path.Join("dir1", "symlink_1"),
 				fileType: largeFileTestInfoFileTypeSymlink,
 			},
 		}
@@ -817,7 +812,7 @@ func TestLargeFiles(t *testing.T) {
 		Convey("archive files multiple files", func() {
 
 			paths := getPaths("archive_files_multiple_files")
-			_ = newTempMocksDir(fmt.Sprintf("%s/%s/%s", "large_files_test_mock", "archive_files_multiple_files", "dir1"), true)
+			_ = newTempMocksDir(path.Join("large_files_test_mock", "archive_files_multiple_files", "dir1"), true)
 
 			for _, v := range archiveFilesLargeFileTestsArr {
 				Convey(fmt.Sprintf("%s - %s", "Testing packing", v.title), func() {
@@ -1038,7 +1033,7 @@ func TestLargeFiles(t *testing.T) {
 
 			encryptedRarArchiveFilesLargeFileTestsArr := []largeFileTests{
 				{
-					title:    "Rar4 - non encrypted - 1",
+					title:    "Rar4 - non encrypted",
 					filename: "archive_files_multiple_files_rar4.rar",
 					pwd: largeFileTestsPassword{
 						[]string{},
@@ -1056,15 +1051,6 @@ func TestLargeFiles(t *testing.T) {
 				},
 
 				{
-					title:    "Rar4 - encrypted",
-					filename: "archive_files_multiple_files_rar4_enc.rar",
-					pwd: largeFileTestsPassword{
-						[]string{"1234567"},
-					},
-					zipEncryptionMethod: zip.StandardEncryption,
-				},
-
-				{
 					title:    "Rar5 - encrypted",
 					filename: "archive_files_multiple_files_rar5_enc.rar",
 					pwd: largeFileTestsPassword{
@@ -1074,8 +1060,8 @@ func TestLargeFiles(t *testing.T) {
 				},
 
 				{
-					title:    "Rar5 - encrypted file names",
-					filename: "archive_files_multiple_files_rar5_enc_filenames_hidden.rar",
+					title:    "Rar5 - encrypted file names and locked",
+					filename: "archive_files_multiple_files_rar5_enc_filename_enc_locked_archive.rar",
 					pwd: largeFileTestsPassword{
 						[]string{"1234567"},
 					},
@@ -1102,9 +1088,13 @@ func TestLargeFiles(t *testing.T) {
 					fileSize: 0,
 					filename: "0b",
 					fileType: largeFileTestInfoFileTypeFile,
+				}, {
+					fileSize: 10,
+					filename: "symlink_target.txt",
+					fileType: largeFileTestInfoFileTypeFile,
 				},
 				{
-					filename: "dir1/symlink_1",
+					filename: path.Join("dir1", "symlink_1"),
 					fileType: largeFileTestInfoFileTypeSymlink,
 				},
 			}

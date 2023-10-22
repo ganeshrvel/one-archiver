@@ -40,11 +40,10 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
 			fullPath := filepath.ToSlash(fileHeader.Name)
-			isDir := file.IsDir()
 
 			size := file.Size()
 			if IsSymlink(file) {
-				symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
 
 				if err != nil {
 					return err
@@ -52,6 +51,8 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 
 				size = int64(len(symlink))
 			}
+
+			isDir := file.IsDir()
 
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
@@ -66,16 +67,25 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 		case *rardecode.FileHeader:
 			isDir := file.IsDir()
 			fullPath := FixDirSlash(isDir, filepath.ToSlash(file.Name()))
+			size := file.Size()
+			if IsRarSymlink(fileHeader) {
+				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+				if err != nil {
+					return err
+				}
+				size = int64(len(symlink))
+			}
 
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
-				Size:       file.Size(),
+				Size:       size,
 				IsDir:      isDir,
 				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       filepath.Base(fullPath),
 				FullPath:   fullPath,
 				ParentPath: GetParentDirectory(fullPath),
 			}
+
 		}
 
 		if allowFileFiltering {
@@ -154,6 +164,30 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 	return err
 }
 
+func getCommonArchivesTargetSymlinkPath(file *archiver.File) (originalTargetPath, targetPathToWrite string, err error) {
+	switch fileHeader := file.Header.(type) {
+	case *tar.Header:
+		originalTargetPath = fileHeader.Linkname
+	}
+
+	if originalTargetPath == "" {
+		r, err := io.ReadAll(file.ReadCloser)
+		if err != nil {
+			return "", "", err
+		}
+		defer func() {
+			if err := file.ReadCloser.Close(); err != nil {
+				fmt.Printf("%v\n", err)
+			}
+		}()
+		originalTargetPath = string(r)
+	}
+
+	targetPathToWrite = filepath.ToSlash(originalTargetPath)
+
+	return originalTargetPath, targetPathToWrite, nil
+}
+
 func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string) error {
 	_arcFileObj := *arcFileObj
 	if _arcFileObj.fileInfo.IsDir {
@@ -171,30 +205,13 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 	}
 
 	if IsSymlink(*_arcFileObj.sourceArchiveFileInfo) {
-		originalTargetPath := ""
-		switch fileHeader := file.Header.(type) {
-		case *tar.Header:
-			originalTargetPath = fileHeader.Linkname
+		originalTargetPath, targetPathToWrite, err := getCommonArchivesTargetSymlinkPath(file)
+		if err != nil {
+			return err
 		}
-
-		if originalTargetPath == "" {
-			r, err := io.ReadAll(file.ReadCloser)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if err := file.ReadCloser.Close(); err != nil {
-					fmt.Printf("%v\n", err)
-				}
-			}()
-
-			originalTargetPath = string(r)
-		}
-
-		targetPathToWrite := filepath.ToSlash(originalTargetPath)
 
 		// todo add a check if continue of error then dont return
-		err := os.Symlink(targetPathToWrite, _arcFileObj.absFilepath)
+		err = os.Symlink(targetPathToWrite, _arcFileObj.absFilepath)
 		if err != nil {
 			return err
 		}
@@ -225,30 +242,4 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 	_, err = SessionAwareCopy(session, writer, file.ReadCloser, _arcFileObj.fileInfo.IsDir, _arcFileObj.fileInfo.Size)
 
 	return err
-}
-
-func getCommonArchivesTargetSymlinkPath(file *archiver.File) (string, error) {
-	originalTargetPath := ""
-	switch fileHeader := file.Header.(type) {
-	case *tar.Header:
-		originalTargetPath = fileHeader.Linkname
-	}
-
-	if originalTargetPath == "" {
-		r, err := io.ReadAll(file.ReadCloser)
-		if err != nil {
-			return "", err
-		}
-		defer func() {
-			if err := file.ReadCloser.Close(); err != nil {
-				fmt.Printf("%v\n", err)
-			}
-		}()
-
-		originalTargetPath = string(r)
-	}
-
-	targetPathToWrite := filepath.ToSlash(originalTargetPath)
-
-	return targetPathToWrite, nil
 }

@@ -59,7 +59,7 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 
 			size := file.Size()
 			if IsSymlink(file) {
-				symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
 
 				if err != nil {
 					return err
