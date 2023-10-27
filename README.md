@@ -205,6 +205,11 @@ fmt.Printf("Result: %+v\n", "Success")
 
 ```
 
+```shell
+go install github.com/smartystreets/goconvey
+$GOPATH/bin/goconvey
+```
+
 
 ### Credits
 - mholt/archiver (https://github.com/mholt/archiver)

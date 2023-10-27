@@ -46,6 +46,8 @@ type CustomFileInfo struct {
 	sys     interface{}
 }
 
+const _ProgressStreamDebounceTime = 2
+
 // Implementing the os.FileInfo interface
 
 func (c *CustomFileInfo) Name() string       { return c.name }
@@ -153,10 +155,7 @@ func _testLargeFilesPacking(t *testing.T, packingOutputFullFilepath string, lfiA
 	return nil
 }
 
-func _testLargeFilesUnpacking(t *testing.T, packingOutputFullFilepath string, unpackedLfiArr []largeFileTestInfo, paths largeFileTestsPaths, testFileInfo largeFileTests, zipEncryptionMethod zip.EncryptionMethod, canResumeTransfer, isCompressedFile bool) error {
-
-	// todo listing of archives for unpacking
-	// todo add rar file support too for unpacking
+func _testLargeFilesUnpacking(t *testing.T, packingOutputFullFilepath string, paths largeFileTestsPaths, testFileInfo largeFileTests, zipEncryptionMethod zip.EncryptionMethod, canResumeTransfer bool) error {
 
 	Convey("Testing unpacking", func() {
 		Convey("it should not throw an error", func() {
@@ -247,7 +246,7 @@ func _testLargeFilesStartPacking(ph *ProgressFunc, fileList []string, filename s
 		FileList:                   fileList,
 		Password:                   pwd.getSinglePassword(),
 		ZipEncryptionMethod:        zipEncryptionMethod,
-		ProgressStreamDebounceTime: 2,
+		ProgressStreamDebounceTime: _ProgressStreamDebounceTime,
 	}
 
 	err := StartPacking(metaObj, packObj, session)
@@ -267,7 +266,7 @@ func _testLargeFilesStartUnpacking(ph *ProgressFunc, filename string, pwd largeF
 	destinationPath := path.Join(paths.unpackingOutputDirPath, GetMD5Hash(testFileInfo.title), testFileInfo.filename)
 	unpackObj := &ArchiveUnpack{
 		Passwords:                  pwd.passwords,
-		ProgressStreamDebounceTime: 2,
+		ProgressStreamDebounceTime: _ProgressStreamDebounceTime,
 		Destination:                destinationPath,
 	}
 
@@ -308,7 +307,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 			So(progress.CurrentFilepath, ShouldNotBeEmpty)
 
 			So(progress.TotalFiles, ShouldEqual, len(lfiArr))
-			So(progress.ProgressStreamDebounceTime, ShouldEqual, 2)
+			So(progress.ProgressStreamDebounceTime, ShouldEqual, _ProgressStreamDebounceTime)
 			So(progress.CanResumeTransfer, ShouldEqual, canResumeTransfer)
 
 			getUpdatedCounter(counterCurrentFilepath, progress.CurrentFilepath, progress.CurrentFilepath)
@@ -828,7 +827,7 @@ func TestLargeFiles(t *testing.T) {
 			for _, v := range archiveFilesLargeFileTestsArr {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, lfiArr, paths, v, v.zipEncryptionMethod, true, false)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -876,7 +875,7 @@ func TestLargeFiles(t *testing.T) {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking with multiple wrong and one correct password", v.title), func() {
 
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, lfiArr, paths, v, v.zipEncryptionMethod, true, false)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -908,11 +907,7 @@ func TestLargeFiles(t *testing.T) {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
 
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, []largeFileTestInfo{{
-						fileSize: 40 * 1000,
-						filename: "40kb",
-						fileType: largeFileTestInfoFileTypeFile},
-					}, paths, v, v.zipEncryptionMethod, true, false)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -942,13 +937,7 @@ func TestLargeFiles(t *testing.T) {
 			for _, v := range archiveFilesLargeFileTestsArr {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, []largeFileTestInfo{
-						{
-							fileSize: 0,
-							filename: "0b",
-							fileType: largeFileTestInfoFileTypeFile,
-						},
-					}, paths, v, v.zipEncryptionMethod, true, false)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -977,13 +966,7 @@ func TestLargeFiles(t *testing.T) {
 			for _, v := range compressedFilesLargeFileTestsArr {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, []largeFileTestInfo{
-						{
-							fileSize: 60 * 1000,
-							filename: "60kb",
-							fileType: largeFileTestInfoFileTypeFile,
-						},
-					}, paths, v, v.zipEncryptionMethod, false, true)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, false)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -1013,13 +996,7 @@ func TestLargeFiles(t *testing.T) {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
 
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, []largeFileTestInfo{
-						{
-							fileSize: 0,
-							filename: "0b",
-							fileType: largeFileTestInfoFileTypeFile,
-						},
-					}, paths, v, v.zipEncryptionMethod, false, true)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, false)
 					if err != nil {
 						log.Panic(err)
 					}
@@ -1069,42 +1046,69 @@ func TestLargeFiles(t *testing.T) {
 				},
 			}
 
-			lfiArr := []largeFileTestInfo{
-				{
-					fileSize: 60 * 1000,
-					filename: "60kb",
-					fileType: largeFileTestInfoFileTypeFile,
-				},
-				{
-					fileSize: 40 * 1000,
-					filename: "40kb",
-					fileType: largeFileTestInfoFileTypeFile,
-				},
-				{
-					fileSize: 10 * 1000,
-					filename: "10kb",
-					fileType: largeFileTestInfoFileTypeFile,
-				}, {
-					fileSize: 0,
-					filename: "0b",
-					fileType: largeFileTestInfoFileTypeFile,
-				}, {
-					fileSize: 10,
-					filename: "symlink_target.txt",
-					fileType: largeFileTestInfoFileTypeFile,
-				},
-				{
-					filename: path.Join("dir1", "symlink_1"),
-					fileType: largeFileTestInfoFileTypeSymlink,
-				},
-			}
-
 			paths := getRarPaths("archive_files_multiple_files")
 			for _, v := range encryptedRarArchiveFilesLargeFileTestsArr {
 				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
 
 					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
-					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, lfiArr, paths, v, v.zipEncryptionMethod, true, false)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
+					if err != nil {
+						log.Panic(err)
+					}
+				})
+			}
+		})
+
+		Convey("archive files single files", func() {
+
+			encryptedRarArchiveFilesLargeFileTestsArr := []largeFileTests{
+				{
+					title:    "Rar4 - non encrypted",
+					filename: "archive_files_single_files_rar4.rar",
+					pwd: largeFileTestsPassword{
+						[]string{},
+					},
+					zipEncryptionMethod: zip.StandardEncryption,
+				}, {
+					title:    "Rar5 - non encrypted",
+					filename: "archive_files_single_files_rar5.rar",
+					pwd: largeFileTestsPassword{
+						[]string{},
+					},
+					zipEncryptionMethod: zip.StandardEncryption,
+				},
+			}
+
+			paths := getRarPaths("archive_files_single_files")
+			for _, v := range encryptedRarArchiveFilesLargeFileTestsArr {
+				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
+					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
+
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
+					if err != nil {
+						log.Panic(err)
+					}
+				})
+			}
+		})
+
+		Convey("archive files 0 bytes", func() {
+			encryptedRarArchiveFilesLargeFileTestsArr := []largeFileTests{
+				{
+					title:    "Rar5 - non encrypted",
+					filename: "archive_files_0_bytes_rar5.rar",
+					pwd: largeFileTestsPassword{
+						[]string{},
+					},
+					zipEncryptionMethod: zip.StandardEncryption,
+				},
+			}
+
+			paths := getRarPaths("archive_files_single_files")
+			for _, v := range encryptedRarArchiveFilesLargeFileTestsArr {
+				Convey(fmt.Sprintf("%s - %s", "Testing unpacking", v.title), func() {
+					packingOutputFullFilepath := v.withDestinationPath(paths.packingOutputDirPath)
+					err := _testLargeFilesUnpacking(t, packingOutputFullFilepath, paths, v, v.zipEncryptionMethod, true)
 					if err != nil {
 						log.Panic(err)
 					}

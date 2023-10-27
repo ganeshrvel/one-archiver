@@ -4,7 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"github.com/ganeshrvel/archiver"
-	"github.com/nwaples/rardecode"
+	"github.com/ganeshrvel/rardecode"
 	ignore "github.com/sabhiram/go-gitignore"
 	"os"
 	"path/filepath"

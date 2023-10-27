@@ -1526,6 +1526,26 @@ func TestSymlinkListing(t *testing.T) {
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
 
+	Convey("Listing | Encrypted - RAR", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_enc_pack.rar")
+
+		_metaObj := &ArchiveMeta{
+			Filename: filename,
+		}
+
+		_testListingSymlinkCommonArchives(_metaObj, []string{"1234567"})
+	})
+
+	Convey("Listing | Non Encrypted - RAR", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_noenc_pack.rar")
+
+		_metaObj := &ArchiveMeta{
+			Filename: filename,
+		}
+
+		_testListingSymlinkCommonArchives(_metaObj, []string{})
+	})
+
 	Convey("Listing | Tar", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar")
 

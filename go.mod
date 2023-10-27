@@ -4,11 +4,11 @@ go 1.19
 
 require (
 	github.com/elliotchance/orderedmap/v2 v2.2.0
-	github.com/ganeshrvel/archiver v1.1.3-0.20230927185115-7331214cdfe2
+	github.com/ganeshrvel/archiver v1.1.3-0.20231022204330-4cd4621d414f
+	github.com/ganeshrvel/rardecode v0.0.0-20231022204118-4c24877e4910
 	github.com/ganeshrvel/yeka_zip v0.0.0-20230812150339-aec70611e891
 	github.com/kr/pretty v0.3.1
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/nwaples/rardecode v1.1.3
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/samber/lo v1.38.1
 	github.com/smartystreets/goconvey v1.8.1
@@ -17,12 +17,15 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
+	github.com/frankban/quicktest v1.14.6 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/nwaples/rardecode v1.1.3 // indirect
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
@@ -31,5 +34,7 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 )

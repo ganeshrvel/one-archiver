@@ -2,8 +2,8 @@ package onearchiver
 
 import (
 	"fmt"
+	"github.com/ganeshrvel/rardecode"
 	"github.com/mitchellh/go-homedir"
-	"github.com/nwaples/rardecode"
 	"log"
 	"os"
 	"path"

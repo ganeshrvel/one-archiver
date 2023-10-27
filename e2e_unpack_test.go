@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-// TODO symlink and hardlink
+// TODO  hardlink
 // todo update tests for hardlinks to read the contents of the file
 func _testListingUnpackedArchive(metaObj *ArchiveMeta, unpackObj *ArchiveUnpack, archiveFilesAssertionArr []string, directoryFilesAssertionArr []string, contentsAssertionArr []map[string][]byte, passwords []string) {
 	destination := unpackObj.Destination
@@ -1122,6 +1122,28 @@ func TestSymlinkUnpacking(t *testing.T) {
 		}
 
 		passwords := []string{"1234567"}
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | Encrypted - RAR", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_enc_pack.rar")
+
+		_metaObj := &ArchiveMeta{
+			Filename: filename,
+		}
+
+		passwords := []string{"1234567"}
+		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
+	})
+
+	Convey("Unpacking | NON Encrypted - RAR", t, func() {
+		filename := getTestMocksAsset("symlink_tests/arc_test_noenc_pack.rar")
+
+		_metaObj := &ArchiveMeta{
+			Filename: filename,
+		}
+
+		passwords := []string{}
 		_testUnpackingSymlinkCommonArchives(_metaObj, session, passwords)
 	})
 
