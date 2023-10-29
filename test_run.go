@@ -98,7 +98,7 @@ func TestUnpack(filename, tempDir string, session *Session) {
 		GitIgnorePattern: []string{},
 	}
 
-	passwords := []string{"12345678", "123456789", "1234567890", "1234567"}
+	passwords := []string{"", "demo", "1234567"}
 
 	au := &ArchiveUnpack{
 		FileList:    []string{},

@@ -1,9 +1,11 @@
 package onearchiver
 
 import (
+	"archive/tar"
 	"fmt"
 	"github.com/ganeshrvel/rardecode"
 	"github.com/mitchellh/go-homedir"
+	"golang.org/x/exp/constraints"
 	"log"
 	"os"
 	"path"
@@ -142,8 +144,31 @@ func IsSymlink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeSymlink != 0
 }
 
-func IsRarSymlink(h *rardecode.FileHeader) bool {
-	return h.Attributes == 1056
+func IsTarHardlink(fileHeader *tar.Header) bool {
+	return fileHeader.Typeflag == tar.TypeLink
+}
+func IsRarHardlink(fileHeader *rardecode.FileHeader) bool {
+	return fileHeader.LinkType == rardecode.TypeLink
+}
+
+func TarFileLinkType(file os.FileInfo, fileHeader *tar.Header) FileLinkType {
+	if IsSymlink(file) {
+		return FileSymlinkType
+	} else if IsTarHardlink(fileHeader) {
+		return FileHardlinkType
+	}
+
+	return FileRegularType
+}
+
+func RarFileLinkType(file os.FileInfo, fileHeader *rardecode.FileHeader) FileLinkType {
+	if IsSymlink(file) {
+		return FileSymlinkType
+	} else if IsRarHardlink(fileHeader) {
+		return FileHardlinkType
+	}
+
+	return FileRegularType
 }
 
 func Percent(partial, total float64) float64 {
@@ -161,7 +186,9 @@ func TransferRatePercent(partial, total float64) float64 {
 		return 100
 	}
 
-	return Percent(partial, total)
+	p := Percent(partial, total)
+
+	return coerceIn(p, 0, 100)
 }
 
 func StringFilter(x []string, f func(string) bool) []string {
@@ -240,4 +267,14 @@ func sanitizeTime(objTime time.Time, arcTime time.Time) time.Time {
 	}
 
 	return objTime
+}
+
+func coerceIn[T constraints.Ordered](value, min, max T) T {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }

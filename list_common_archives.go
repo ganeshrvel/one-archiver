@@ -53,19 +53,19 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
-			fullPath := filepath.ToSlash(fileHeader.Name)
 			isDir := file.IsDir()
+			fullPath := filepath.ToSlash(fileHeader.Name)
 			name := file.Name()
 
 			size := file.Size()
-			if IsSymlink(file) {
-				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+			if TarFileLinkType(file, fileHeader).isLink() {
+				_, link, err := getCommonArchivesTargetLinkPath(&file)
 
 				if err != nil {
 					return err
 				}
 
-				size = int64(len(symlink))
+				size = int64(len(link))
 			}
 
 			fileInfo = ArchiveFileInfo{
@@ -84,9 +84,20 @@ func (arc commonArchive) list() ([]ArchiveFileInfo, error) {
 			fullPath := FixDirSlash(isDir, filepath.ToSlash(file.Name()))
 			name := filepath.Base(fullPath)
 
+			size := file.Size()
+			if RarFileLinkType(file, fileHeader).isLink() {
+				_, link, err := getCommonArchivesTargetLinkPath(&file)
+
+				if err != nil {
+					return err
+				}
+
+				size = int64(len(link))
+			}
+
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
-				Size:       file.Size(),
+				Size:       size,
 				IsDir:      isDir,
 				ModTime:    sanitizeTime(file.ModTime(), arcFileStat.ModTime()),
 				Name:       name,

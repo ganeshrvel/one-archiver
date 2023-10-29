@@ -42,19 +42,17 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 			fullPath := filepath.ToSlash(fileHeader.Name)
 
 			size := file.Size()
-			if IsSymlink(file) {
-
-				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+			if TarFileLinkType(file, fileHeader).isLink() {
+				_, link, err := getCommonArchivesTargetLinkPath(&file)
 
 				if err != nil {
 					return err
 				}
 
-				size = int64(len(symlink))
+				size = int64(len(link))
 			}
 
 			isDir := file.IsDir()
-
 			fileInfo = ArchiveFileInfo{
 				Mode:       file.Mode(),
 				Size:       size,
@@ -70,12 +68,12 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 			fullPath := FixDirSlash(isDir, filepath.ToSlash(file.Name()))
 			size := file.Size()
 
-			if IsSymlink(file) {
-				_, symlink, err := getCommonArchivesTargetSymlinkPath(&file)
+			if RarFileLinkType(file, fileHeader).isLink() {
+				_, link, err := getCommonArchivesTargetLinkPath(&file)
 				if err != nil {
 					return err
 				}
-				size = int64(len(symlink))
+				size = int64(len(link))
 			}
 
 			fileInfo = ArchiveFileInfo{
@@ -122,7 +120,7 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, true)
 
 	err = arcWalker.Walk(sourceFilename, func(file archiver.File) error {
-		isArcFileSymlink := false
+		var fileLinkType FileLinkType
 		select {
 		case <-session.isDone():
 			session.endProgress(ProgressStatusCancelled)
@@ -133,16 +131,12 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 		var fullPath string
 		switch fileHeader := file.Header.(type) {
 		case *tar.Header:
-			if IsSymlink(file) {
-				isArcFileSymlink = true
-			}
+			fileLinkType = TarFileLinkType(file, fileHeader)
 
 			fullPath = filepath.ToSlash(fileHeader.Name)
 
 		case *rardecode.FileHeader:
-			if IsSymlink(file) {
-				isArcFileSymlink = true
-			}
+			fileLinkType = RarFileLinkType(file, fileHeader)
 
 			isDir := file.IsDir()
 			fullPath = FixDirSlash(isDir, filepath.ToSlash(file.Name()))
@@ -156,7 +150,7 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 
 		progressMetrices.updateArchiveFilesProgressCount(file.FileInfo.IsDir())
 		if err := session.fileProgress(destinationFileAbsPath, progressMetrices.filesProgressCount, file.FileInfo.IsDir(), func() error {
-			return addFileFromCommonArchiveToDisk(session, &arcFileObj, &file, destinationFileAbsPath, isArcFileSymlink)
+			return addFileFromCommonArchiveToDisk(session, &arcFileObj, &file, destinationFileAbsPath, fileLinkType)
 		}); err != nil {
 			return err
 		}
@@ -175,7 +169,7 @@ func startUnpackingCommonArchives(session *Session, arc commonArchive, arcWalker
 	return err
 }
 
-func getCommonArchivesTargetSymlinkPath(file *archiver.File) (originalTargetPath, targetPathToWrite string, err error) {
+func getCommonArchivesTargetLinkPath(file *archiver.File) (originalTargetPath, targetPathToWrite string, err error) {
 	switch fileHeader := file.Header.(type) {
 	case *tar.Header:
 		originalTargetPath = fileHeader.Linkname
@@ -186,7 +180,7 @@ func getCommonArchivesTargetSymlinkPath(file *archiver.File) (originalTargetPath
 	if originalTargetPath == "" {
 		r, err := io.ReadAll(file.ReadCloser)
 		if err != nil {
-			return "", "", err
+			return originalTargetPath, targetPathToWrite, err
 		}
 		defer func() {
 			if err := file.ReadCloser.Close(); err != nil {
@@ -201,7 +195,7 @@ func getCommonArchivesTargetSymlinkPath(file *archiver.File) (originalTargetPath
 	return originalTargetPath, targetPathToWrite, nil
 }
 
-func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string, isArcFileSymlink bool) error {
+func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonArchiveFileInfo, file *archiver.File, destinationFileAbsPath string, fileLinkType FileLinkType) error {
 	_arcFileObj := *arcFileObj
 	if _arcFileObj.fileInfo.IsDir {
 		if err := os.MkdirAll(destinationFileAbsPath, os.ModePerm); err != nil {
@@ -217,19 +211,27 @@ func addFileFromCommonArchiveToDisk(session *Session, arcFileObj *extractCommonA
 		}
 	}
 
-	if isArcFileSymlink {
-		originalTargetPath, targetPathToWrite, err := getCommonArchivesTargetSymlinkPath(file)
+	if fileLinkType.isLink() {
+		originalTargetPath, targetPathToWrite, err := getCommonArchivesTargetLinkPath(file)
 		if err != nil {
 			return err
 		}
 
-		// todo add a check if continue of error then dont return
-		err = os.Symlink(targetPathToWrite, _arcFileObj.absFilepath)
-		if err != nil {
-			return err
+		if fileLinkType == FileSymlinkType {
+			// todo add a check if continue of error then dont return
+			err = os.Symlink(targetPathToWrite, _arcFileObj.absFilepath)
+			if err != nil {
+				return err
+			}
+		} else if fileLinkType == FileHardlinkType {
+			// todo add a check if continue of error then dont return
+			err = os.Link(targetPathToWrite, _arcFileObj.absFilepath)
+			if err != nil {
+				return err
+			}
 		}
 
-		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
+		session.linkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		// todo add a check if continue of error then dont return
 		return nil

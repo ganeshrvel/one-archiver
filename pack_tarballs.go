@@ -30,16 +30,16 @@ func packTarballs(session *Session, arc *commonArchive, arcFileObj interface{ ar
 		}
 	}()
 
-	zipFilePathListMap := make(map[string]createArchiveFileInfo)
+	tarFilePathListMap := make(map[string]createArchiveFileInfo)
 
-	progressMetrices, err := processFilesForPackingArchives(&zipFilePathListMap, fileList, commonParentPath, &gitIgnorePattern)
+	progressMetrices, err := processFilesForPackingArchives(&tarFilePathListMap, fileList, commonParentPath, &gitIgnorePattern)
 	if err != nil {
 		return err
 	}
 
 	session.initializeProgress(progressMetrices.totalFiles, progressMetrices.totalSize, progressStreamDebounceTime, true)
 
-	for absolutePath, item := range zipFilePathListMap {
+	for absolutePath, item := range tarFilePathListMap {
 		select {
 		case <-session.isDone():
 			session.endProgress(ProgressStatusCancelled)
@@ -79,7 +79,7 @@ func addFileToTarBall(session *Session, arcFileObj *interface{ archiver.Writer }
 		targetReader := bytes.NewReader([]byte(targetPathToWrite))
 		fileToArchive = io.NopCloser(targetReader)
 
-		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
+		session.linkSizeProgress(originalTargetPath, targetPathToWrite)
 	} else {
 		f, err := os.Open(sourceFilename)
 		if err != nil {

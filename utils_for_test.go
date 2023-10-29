@@ -6,6 +6,7 @@ import (
 	"fmt"
 	. "github.com/ganeshrvel/one-archiver"
 	"github.com/samber/lo"
+	"golang.org/x/exp/constraints"
 	"log"
 	"os"
 	"path/filepath"
@@ -274,4 +275,21 @@ func getFilesInDirectory(fullpath string, filter []string) *map[string]os.FileIn
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
+}
+
+func min0Int64(value int64) int64 {
+	return coerceIn(value, 0, value)
+}
+func min0Float64(value float64) float64 {
+	return coerceIn(value, 0, value)
+}
+
+func coerceIn[T constraints.Ordered](value, min, max T) T {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }

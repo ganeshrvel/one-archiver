@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+type FileLinkType string
+
+const (
+	FileHardlinkType FileLinkType = "Hardlink"
+	FileSymlinkType  FileLinkType = "Symlink"
+	FileRegularType  FileLinkType = "Regular"
+)
+
+func (l FileLinkType) isLink() bool {
+	return l != FileRegularType
+}
+
 type allowedSecondExtMap map[string]string
 
 type ArchiveFileInfo struct {

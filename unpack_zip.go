@@ -192,7 +192,7 @@ func addFileFromZipToDisk(session *Session, zippedFileToExtractInfo *zip.File, d
 			return err
 		}
 
-		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
+		session.linkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		// todo add a check if continue of error then dont return
 		return nil

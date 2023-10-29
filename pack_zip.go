@@ -115,7 +115,7 @@ func addFileToZip(
 			return err
 		}
 
-		session.symlinkSizeProgress(originalTargetPath, targetPathToWrite)
+		session.linkSizeProgress(originalTargetPath, targetPathToWrite)
 
 		return nil
 	}

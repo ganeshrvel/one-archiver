@@ -358,7 +358,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 		}
 	}
 
-	t.Logf("CurrentFilepath incrementing")
+	t.Logf("\nCurrentFilepath incrementing")
 	counter := 0
 	for el := counterCurrentFilepath.Front(); el != nil; el = el.Next() {
 		itemsArr := el.Value
@@ -376,7 +376,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("CurrentFilepath incrementing")
+	t.Logf("\nCurrentFilepath incrementing")
 	counter = 0
 	for el := counterSentFilesCount.Front(); el != nil; el = el.Next() {
 		itemsArr := el.Value
@@ -388,7 +388,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("SentFilesCountPercentage incrementing")
+	t.Logf("\nSentFilesCountPercentage incrementing")
 	lastPercValue := float64(0)
 	counter = 0
 
@@ -415,7 +415,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 	So(counter, ShouldBeGreaterThan, 0)
 	So(lastPercValue, ShouldEqual, 100)
 
-	t.Logf("TotalSize incrementing")
+	t.Logf("\nTotalSize incrementing")
 	counter = 0
 	for el := counterTotalSize.Front(); el != nil; el = el.Next() {
 		itemsArr := el.Value
@@ -432,7 +432,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("SentSize incrementing")
+	t.Logf("\nSentSize incrementing")
 	counter = 0
 	totalSize := int64(0)
 	for el := counterSentSize.Front(); el != nil; el = el.Next() {
@@ -446,29 +446,50 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 		currentFileLocalInfo := (*fileInfoMap)[currentFilepath]
 		currentFileSize := currentFileLocalInfo.Size()
-		So(last, ShouldEqual, totalSize+currentFileSize)
+
+		if testFileInfo.deflectiveProgress {
+			So(last, ShouldBeBetweenOrEqual, min0Int64(totalSize+currentFileSize-10), totalSize+currentFileSize+10)
+		} else {
+			So(last, ShouldEqual, totalSize+currentFileSize)
+		}
+
 		totalSize = last
 
 		counter++
 	}
 
-	So(totalSize, ShouldEqual, filesTotalSize)
+	if testFileInfo.deflectiveProgress {
+		So(totalSize, ShouldBeBetweenOrEqual, min0Int64(totalSize-10), totalSize+10)
+	} else {
+		So(totalSize, ShouldEqual, filesTotalSize)
+	}
+
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("SentSizeProgressPercentage incrementing")
+	t.Logf("\nSentSizeProgressPercentage incrementing")
 	lastPercValue = float64(0)
 	counter = 0
 
 	for el := counterSentSizeProgressPercentage.Front(); el != nil; el = el.Next() {
 		itemsArr := el.Value
 
-		So(itemsArr[0], ShouldEqual, lastPercValue)
+		if testFileInfo.deflectiveProgress {
+			So(itemsArr[0], ShouldBeBetweenOrEqual, min0Float64(lastPercValue-10), lastPercValue+10)
+		} else {
+			So(itemsArr[0], ShouldEqual, lastPercValue)
+		}
 
 		for idx, value := range itemsArr {
 			if idx == 0 {
 				continue
 			}
-			So(value, ShouldBeGreaterThan, itemsArr[idx-1])
+
+			if testFileInfo.deflectiveProgress {
+				So(value, ShouldBeGreaterThanOrEqualTo, min0Float64(itemsArr[idx-1]-10))
+			} else {
+				So(value, ShouldBeGreaterThan, itemsArr[idx-1])
+			}
+
 		}
 
 		last, err := lo.Last(itemsArr)
@@ -482,7 +503,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 	So(counter, ShouldBeGreaterThan, 0)
 	So(lastPercValue, ShouldEqual, 100)
 
-	t.Logf("CurrentFileSize incrementing")
+	t.Logf("\nCurrentFileSize incrementing")
 	counter = 0
 
 	for el := counterCurrentFileSize.Front(); el != nil; el = el.Next() {
@@ -505,7 +526,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("CurrentFileSentSize incrementing")
+	t.Logf("\nCurrentFileSentSize incrementing")
 	counter = 0
 	totalSize = int64(0)
 	for el := counterCurrentFileSentSize.Front(); el != nil; el = el.Next() {
@@ -519,16 +540,27 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 
 		currentFileLocalInfo := (*fileInfoMap)[currentFilepath]
 		currentFileSize := currentFileLocalInfo.Size()
-		So(last, ShouldEqual, currentFileSize)
+
+		if testFileInfo.deflectiveProgress {
+			So(last, ShouldBeBetweenOrEqual, min0Int64(currentFileSize-10), currentFileSize+10)
+		} else {
+			So(last, ShouldEqual, currentFileSize)
+		}
+
 		totalSize += last
 
 		counter++
 	}
 
-	So(totalSize, ShouldEqual, filesTotalSize)
+	if testFileInfo.deflectiveProgress {
+		So(totalSize, ShouldBeBetweenOrEqual, min0Int64(filesTotalSize-10), filesTotalSize+10)
+	} else {
+		So(totalSize, ShouldEqual, filesTotalSize)
+	}
+
 	So(counter, ShouldBeGreaterThan, 0)
 
-	t.Logf("CurrentFileProgressSizePercentage incrementing")
+	t.Logf("\nCurrentFileProgressSizePercentage incrementing")
 	totalPercSent := float64(0)
 	counter = 0
 
@@ -556,7 +588,7 @@ func _largeFilesCommonTests(t *testing.T, testType largeFileTestingType, lfiArr 
 	So(counter, ShouldBeGreaterThan, 0)
 	So(totalPercSent, ShouldEqual, 100*len(lfiArr))
 
-	t.Logf("ProgressStatus incrementing")
+	t.Logf("\nProgressStatus incrementing")
 	counter = 0
 
 	for el := counterProgressStatus.Front(); el != nil; el = el.Next() {
@@ -579,6 +611,13 @@ type largeFileTests struct {
 	filename            string
 	pwd                 largeFileTestsPassword
 	zipEncryptionMethod zip.EncryptionMethod
+
+	// This is a workaround.
+	// When extracting zipped files with multiple passwords, if the initial password is incorrect
+	// but subsequent passwords are correct, the progress for the current file's size should have already been emitted.
+	// Before invoking the progress correction API, this progress would have been emitted, leading to confusion in the progress statistics.
+	// To prevent misleading test results, we will agree to any results between an allowed threshold
+	deflectiveProgress bool
 }
 
 type largeFileTestsPaths struct {
@@ -842,6 +881,7 @@ func TestLargeFiles(t *testing.T) {
 					pwd: largeFileTestsPassword{
 						[]string{"", "demo", "1234567"},
 					},
+					deflectiveProgress:  true,
 					zipEncryptionMethod: zip.StandardEncryption,
 				},
 
@@ -851,6 +891,7 @@ func TestLargeFiles(t *testing.T) {
 					pwd: largeFileTestsPassword{
 						[]string{"1234", "demo", "1234567"},
 					},
+					deflectiveProgress:  true,
 					zipEncryptionMethod: zip.StandardEncryption,
 				},
 

@@ -76,8 +76,8 @@ func (session *Session) fileProgress(absolutePath string, filesProgressCount int
 	return nil
 }
 
-// symlinkSizeProgress updates the size (in bytes) progress, of symlink, for the session.
-func (session *Session) symlinkSizeProgress(originalTargetPath, targetPathToWrite string) {
+// linkSizeProgress updates the size (in bytes) progress, of symlink, for the session.
+func (session *Session) linkSizeProgress(originalTargetPath, targetPathToWrite string) {
 	targetPathSizeToWrite := int64(len(targetPathToWrite))
 
 	correctionSize := targetPathSizeToWrite - int64(len(originalTargetPath))
