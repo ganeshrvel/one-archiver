@@ -84,22 +84,6 @@ func _testPackedArchiveAfterUnpacking(t *testing.T, _metaObj *ArchiveMeta, conte
 }
 
 func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, password string, zipEncryptionMethod zip.EncryptionMethod) {
-	Convey("Unpack and test archive", func() {
-
-		contentsAssertionArr := []map[string][]byte{
-			{"a.txt": []byte("abc d efg")},
-			{"1/": nil},
-			{"1/a.txt": []byte("abcdefg\n")},
-			{"2/": nil},
-			{"2/b.txt": []byte("123456")},
-			{"3/": nil},
-			{"3/b.txt": []byte("123456")},
-			{"3/2/": nil},
-			{"3/2/b.txt": []byte("123456")},
-		}
-
-		_testPackedArchiveAfterUnpacking(t, _metaObj, contentsAssertionArr, session, []string{password})
-	})
 
 	Convey("gitIgnorePattern | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1")
@@ -534,6 +518,23 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 			_testListingPackedArchive(_metaObj, assertionArr, map[string]int{"b.txt": 0, "cc.txt": 0})
 		})
+	})
+
+	Convey("Unpack and test archive", func() {
+
+		contentsAssertionArr := []map[string][]byte{
+			{"a.txt": []byte("abc d efg")},
+			{"1/": nil},
+			{"1/a.txt": []byte("abcdefg\n")},
+			{"2/": nil},
+			{"2/b.txt": []byte("123456")},
+			{"3/": nil},
+			{"3/b.txt": []byte("123456")},
+			{"3/2/": nil},
+			{"3/2/b.txt": []byte("123456")},
+		}
+
+		_testPackedArchiveAfterUnpacking(t, _metaObj, contentsAssertionArr, session, []string{password})
 	})
 }
 
