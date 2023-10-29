@@ -9,12 +9,11 @@ import (
 
 func _testListingPackedArchive(_metaObj *ArchiveMeta, assertionArr []string, excludeSizes map[string]int) {
 	Convey("recursive=true | Asc - it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -46,11 +45,10 @@ func _testPackedArchiveAfterUnpacking(t *testing.T, _metaObj *ArchiveMeta, conte
 	_destination := newTempMocksDir("mock_test_file1", true)
 
 	Convey("it should not throw an error", func() {
-		unpackObj := &ArchiveUnpack{
-			FileList:    []string{},
-			Destination: _destination,
-			Passwords:   passwords,
-		}
+		unpackObj := NewArchiveUnpack()
+		unpackObj.FileList = []string{}
+		unpackObj.Destination = _destination
+		unpackObj.Passwords = passwords
 
 		err := StartUnpacking(_metaObj, unpackObj, session)
 
@@ -87,11 +85,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 	Convey("gitIgnorePattern | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		_metaObj.GitIgnorePattern = []string{"b.txt"}
 
@@ -102,11 +99,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 	Convey("Single path in 'fileList' | selected - a directory  | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -138,11 +134,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 	Convey("Single path in 'fileList' | selected - a file  | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -158,11 +153,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Multiple paths in 'fileList' | selected - Multiple directories | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1")
 		path2 := getTestMocksAsset("mock_dir2")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -178,11 +172,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Multiple paths in 'fileList' | selected - Multiple files | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir3/a.txt")
 		path2 := getTestMocksAsset("mock_dir3/b.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -198,11 +191,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Multiple paths in 'fileList' | selected - single file and a single directory | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
 		path2 := getTestMocksAsset("mock_dir1/1/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -219,11 +211,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
 		path2 := getTestMocksAsset("mock_dir1/1/")
 		path3 := getTestMocksAsset("mock_dir1/2/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -241,11 +232,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path2 := getTestMocksAsset("mock_dir3/b.txt")
 		path3 := getTestMocksAsset("mock_dir3/1/")
 		path4 := getTestMocksAsset("mock_dir3/2/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3, path4},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3, path4}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -261,11 +251,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Different levels of parent paths | Multiple paths in 'fileList' | selected - two files | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
 		path2 := getTestMocksAsset("mock_dir1/1/a.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -281,11 +270,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Different levels of parent paths | Multiple paths in 'fileList' | selected - 1 file and 1 directory | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
 		path2 := getTestMocksAsset("mock_dir2/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -301,11 +289,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Different levels of parent paths | Multiple paths in 'fileList' | selected - 2 directories - 1 | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/1")
 		path2 := getTestMocksAsset("mock_dir2/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -321,11 +308,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Different levels of parent paths | Multiple paths in 'fileList' | selected - 2 directories - 2 | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/1")
 		path2 := getTestMocksAsset("mock_dir3/dir_1/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -343,11 +329,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path2 := getTestMocksAsset("mock_dir2/3/2/b.txt")
 		path3 := getTestMocksAsset("mock_dir3/dir_1/1/a.txt")
 		path4 := getTestMocksAsset("mock_dir3/dir_1/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3, path4},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3, path4}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -365,11 +350,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path2 := getTestMocksAsset("mock_dir1/1")
 		path3 := getTestMocksAsset("mock_dir2/3/2/b.txt")
 		path4 := getTestMocksAsset("mock_dir2/3/2/b.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3, path4},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3, path4}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -385,11 +369,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Multiple paths in 'fileList' | selected - 1 file and 1 directory from the same nested parent | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir2/3/")
 		path2 := getTestMocksAsset("mock_dir2/3/2/b.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -405,11 +388,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	Convey("Multiple paths in 'fileList' | selected - 1 file and 1 directory from the same nested parent - 2 | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir2/3/2/b.txt")
 		path2 := getTestMocksAsset("mock_dir2/3/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -426,11 +408,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path1 := getTestMocksAsset("mock_dir3/b.txt")
 		path2 := getTestMocksAsset("mock_dir3/b.txt")
 		path3 := getTestMocksAsset("mock_dir3/b.txt")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -447,11 +428,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 		path1 := getTestMocksAsset("mock_dir3/")
 		path2 := getTestMocksAsset("mock_dir3/")
 		path3 := getTestMocksAsset("mock_dir3/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1, path2, path3},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1, path2, path3}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -465,11 +445,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 	})
 
 	Convey("no files in the pathlist |d It should not throw an error", func() {
-		_packObj := &ArchivePack{
-			FileList:            []string{},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -484,11 +463,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 	Convey("symlink | directory | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir4/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -503,11 +481,10 @@ func _testPacking(t *testing.T, _metaObj *ArchiveMeta, session *Session, passwor
 
 	Convey("symlink mock_dir5 | directory with bad and good symlink | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir5/")
-		_packObj := &ArchivePack{
-			FileList:            []string{path1},
-			Password:            password,
-			ZipEncryptionMethod: zipEncryptionMethod,
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
+		_packObj.Password = password
+		_packObj.ZipEncryptionMethod = zipEncryptionMethod
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -542,9 +519,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("Single path in 'fileList' | selected - a file  | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -569,9 +545,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("gitIgnorePattern | It should NOT throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/a.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		_metaObj.GitIgnorePattern = []string{"b.txt"}
 
@@ -588,9 +563,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("gitIgnorePattern | It should throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir1/2/b.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		_metaObj.GitIgnorePattern = []string{"b.txt"}
 
@@ -600,9 +574,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 	})
 
 	Convey("no files in the pathlist | It should throw an error", func() {
-		_packObj := &ArchivePack{
-			FileList: []string{},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -612,9 +585,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("Multiple paths in 'fileList' | It should throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir3/")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -625,9 +597,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 	Convey("Multiple paths in 'fileList' | selected - 2 files | It should throw an error", func() {
 		path2 := getTestMocksAsset("mock_dir2/3/2/b.txt")
 		path3 := getTestMocksAsset("mock_dir3/dir_1/1/a.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path2, path3},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path2, path3}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -637,9 +608,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("symlink | b.txt | It should not throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir5/b.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -654,9 +624,8 @@ func _testCompressedFilePacking(t *testing.T, _metaObj *ArchiveMeta, session *Se
 
 	Convey("symlink | cc.txt | It should throw an error", func() {
 		path1 := getTestMocksAsset("mock_dir5/cc.txt")
-		_packObj := &ArchivePack{
-			FileList: []string{path1},
-		}
+		_packObj := NewArchivePack()
+		_packObj.FileList = []string{path1}
 
 		err := StartPacking(_metaObj, _packObj, session)
 
@@ -686,9 +655,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | No encryption - ZIP", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -696,9 +663,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Encrypted - ZIP (StandardEncryption)", t, func() {
 		filename := newTempMocksAsset("arc_test_stdenc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "1234567", zip.StandardEncryption)
 	})
@@ -706,9 +671,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Encrypted - ZIP (AES128Encryption)", t, func() {
 		filename := newTempMocksAsset("arc_test_aes128enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "1234567", zip.AES128Encryption)
 	})
@@ -716,9 +679,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Encrypted - ZIP (AES256Encryption)", t, func() {
 		filename := newTempMocksAsset("arc_test_aes256enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "1234567", zip.AES256Encryption)
 	})
@@ -726,9 +687,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Encrypted - ZIP (AES192Encryption)", t, func() {
 		filename := newTempMocksAsset("arc_test_aes192enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "1234567", zip.AES192Encryption)
 	})
@@ -736,7 +695,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -744,7 +703,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.gz", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -752,7 +711,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.bz2", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.bz2")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -760,7 +719,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.br (brotli)", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.br")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -768,7 +727,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.lz4", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.lz4")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -776,7 +735,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.sz", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.sz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -784,7 +743,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.xz", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.xz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -792,7 +751,7 @@ func TestPacking(t *testing.T) {
 	Convey("Packing | Tar.zst (zstd)", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.tar.zst")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testPacking(t, _metaObj, session, "", zip.StandardEncryption)
 	})
@@ -800,51 +759,51 @@ func TestPacking(t *testing.T) {
 	Convey("Packing compressed file | GZ", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 	Convey("Packing compressed file | GZ", t, func() {
 		filename := newTempMocksAsset("arc_test.a.txt.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test.a.txt")
 	})
 
 	Convey("Packing compressed file | Zstd", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.zst")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 
 	Convey("Packing compressed file | Xz", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.xz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 
 	Convey("Packing compressed file | sz (Snappy)", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.sz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 
 	Convey("Packing compressed file | Lz4", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.lz4")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 
 	Convey("Packing compressed file | Bz2", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.bz2")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 
 	Convey("Packing compressed file | BR (Brotli)", t, func() {
 		filename := newTempMocksAsset("arc_test_pack.br")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testCompressedFilePacking(t, _metaObj, session, "arc_test_pack")
 	})
 }

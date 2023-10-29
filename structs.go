@@ -40,12 +40,29 @@ type ArchiveMeta struct {
 	GitIgnorePattern []string
 }
 
+func NewArchiveMeta(filename string) *ArchiveMeta {
+	return &ArchiveMeta{
+		Filename:         filename,
+		GitIgnorePattern: []string{},
+	}
+}
+
 type ArchiveRead struct {
 	Passwords         []string
 	ListDirectoryPath string
 	OrderBy           ArchiveOrderBy
 	OrderDir          ArchiveOrderDir
 	Recursive         bool
+}
+
+func NewArchiveRead() *ArchiveRead {
+	return &ArchiveRead{
+		Passwords:         []string{},
+		ListDirectoryPath: "",
+		OrderBy:           "",
+		OrderDir:          "",
+		Recursive:         false,
+	}
 }
 
 func (ar *ArchiveRead) passwordContext() *PasswordContext {
@@ -60,6 +77,15 @@ type ArchivePack struct {
 	ProgressStreamDebounceTime int64
 }
 
+func NewArchivePack() *ArchivePack {
+	return &ArchivePack{
+		Password:                   "",
+		ZipEncryptionMethod:        0,
+		FileList:                   []string{},
+		ProgressStreamDebounceTime: DefaultProgressStreamDebounceTime,
+	}
+}
+
 func (ap *ArchivePack) passwordContext() *PasswordContext {
 	return &PasswordContext{passwords: []string{ap.Password}}
 }
@@ -69,6 +95,15 @@ type ArchiveUnpack struct {
 	FileList                   []string // List of specific files to extract from the archive.
 	Destination                string   // Destination path where the files should be extracted.
 	ProgressStreamDebounceTime int64
+}
+
+func NewArchiveUnpack() *ArchiveUnpack {
+	return &ArchiveUnpack{
+		Passwords:                  []string{},
+		FileList:                   []string{},
+		Destination:                "",
+		ProgressStreamDebounceTime: DefaultProgressStreamDebounceTime,
+	}
 }
 
 func (au *ArchiveUnpack) passwordContext() *PasswordContext {

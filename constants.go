@@ -2,6 +2,7 @@ package onearchiver
 
 import (
 	"os"
+	"time"
 )
 
 var (
@@ -10,7 +11,8 @@ var (
 )
 
 const (
-	OverwriteExisting = true
+	OverwriteExisting                       = true
+	DefaultProgressStreamDebounceTime int64 = int64(500 * time.Millisecond)
 )
 
 var allowedSecondExtensions allowedSecondExtMap = map[string]string{"tar": "tar"}

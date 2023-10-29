@@ -11,13 +11,12 @@ import (
 func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, destinationFilename string, passwords []string, size int64) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "qwerty/",
-				Recursive:         true,
-				OrderBy:           OrderByName,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "qwerty/"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByName
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -27,10 +26,9 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 
 	Convey("gitIgnore", func() {
 		Convey("gitIgnore | 1 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Passwords = passwords
 
 			_metaObj.GitIgnorePattern = []string{destinationFilename}
 
@@ -50,10 +48,9 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 		})
 
 		Convey("gitIgnore | 2  - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Passwords = passwords
 
 			_metaObj.GitIgnorePattern = []string{"some dummy"}
 
@@ -74,13 +71,12 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 	})
 
 	Convey("ListDirectoryPath  - it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         false,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirDesc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = false
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirDesc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -98,13 +94,12 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 	})
 
 	Convey("Size and mode | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         false,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirDesc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = false
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirDesc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -129,13 +124,12 @@ func _testCompressedFileListing(_metaObj *ArchiveMeta, isMacOSArchive bool, dest
 func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAssertionParentPathArr []string, passwords []string) {
 	Convey("General tests", func() {
 		Convey("Incorrect listDirectoryPath - it should throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "qwerty/",
-				Recursive:         true,
-				OrderBy:           OrderByName,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "qwerty/"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByName
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -145,13 +139,13 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 	Convey("OrderByName", func() {
 		Convey("Asc | recursive=false - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/",
-				Recursive:         false,
-				OrderBy:           OrderByName,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/"
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByName
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -169,13 +163,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("Desc | recursive=false | 1 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/3/",
-				Recursive:         false,
-				OrderBy:           OrderByName,
-				OrderDir:          OrderDirDesc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/3/"
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByName
+			_listObj.OrderDir = OrderDirDesc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -193,13 +186,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("Desc | recursive=false | 2 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/3",
-				Recursive:         false,
-				OrderBy:           OrderByName,
-				OrderDir:          OrderDirDesc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/3"
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByName
+			_listObj.OrderDir = OrderDirDesc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -219,13 +211,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 	Convey("gitIgnore", func() {
 		Convey("gitIgnore | recursive=true | Asc | 1 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			_metaObj.GitIgnorePattern = []string{"a.txt"}
 
@@ -245,13 +236,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("gitIgnore | recursive=true | Asc | 2  - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			_metaObj.GitIgnorePattern = []string{"a.txt"}
 
@@ -273,13 +263,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 	Convey("empty listDirectoryPath", func() {
 		Convey("recursive=true | Asc - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -297,13 +286,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("recursive=false | Desc - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Recursive:         false,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirDesc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirDesc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -323,13 +311,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 	Convey("OrderByFullPath", func() {
 		Convey("Asc | recursive=true | 1 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -348,13 +335,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 		Convey("Asc | recursive=true | 2 - it should not throw an error", func() {
 
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/3",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/3"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -373,13 +359,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 		Convey("Asc | recursive=false | 3 - it should not throw an error", func() {
 
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/3",
-				Recursive:         false,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/3"
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -397,13 +382,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("Desc | recursive=true | 1 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirDesc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/"
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirDesc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -421,13 +405,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 		})
 
 		Convey("Desc | recursive=false | 2 - it should not throw an error", func() {
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "mock_dir1/",
-				Recursive:         false,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirDesc,
-				Passwords:         passwords,
-			}
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = "mock_dir1/"
+			_listObj.Recursive = false
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirDesc
+			_listObj.Passwords = passwords
 
 			result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -447,13 +430,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Test Parentpath | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "mock_dir1/",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = "mock_dir1/"
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -475,13 +457,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Test Extension | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -503,13 +484,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Test name | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "mock_dir1/",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = "mock_dir1/"
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -531,13 +511,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Mode | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -564,13 +543,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Size | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -599,13 +577,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("IsDir | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -628,13 +605,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("ModTime | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -661,13 +637,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 	})
 
 	Convey("Kind | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByKind,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByKind
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -689,13 +664,12 @@ func _testArchiveListing(_metaObj *ArchiveMeta, isMacOSArchive bool, modTimeAsse
 
 func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 	Convey("Incorrect Password | empty password | - it should throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirAsc,
-			Passwords:         []string{""},
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = []string{""}
 
 		_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -703,13 +677,12 @@ func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 		So(err.Error(), ShouldContainSubstring, "invalid password")
 	})
 	Convey("Incorrect Password | with string | - it should throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirAsc,
-			Passwords:         []string{"wrongpassword"},
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = []string{"wrongpassword"}
 
 		_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -718,13 +691,12 @@ func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 	})
 
 	Convey("Empty Password - it should throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirAsc,
-			Passwords:         []string{},
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = []string{}
 
 		_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -733,13 +705,12 @@ func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 	})
 
 	Convey("Correct Password - it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByName,
-			OrderDir:          OrderDirAsc,
-			Passwords:         []string{"1234567"},
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByName
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = []string{"1234567"}
 
 		_, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -749,13 +720,12 @@ func _testArchiveListingInvalidPassword(_metaObj *ArchiveMeta) {
 
 func _testArchiveListingInvalidPasswordCommonArchivesAndZip(_metaObj *ArchiveMeta, passwords []string) {
 	Convey("Incorrect Password | common archives and zip - it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByFullPath,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByFullPath
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(_metaObj, _listObj)
 
@@ -986,7 +956,7 @@ func _testOrderByFullPathListing() {
 func _testZipArchiveEncryption() {
 	Convey("Non Encrypted zip | it should return false", func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{})
 
@@ -999,7 +969,7 @@ func _testZipArchiveEncryption() {
 
 	Convey("Encrypted zip | Check if password required", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{})
 
@@ -1014,7 +984,7 @@ func _testZipArchiveEncryption() {
 func _testRarArchiveEncryption() {
 	Convey("Non Encrypted rar | it should return false", func() {
 		filename := getTestMocksAsset("mock_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{})
 
@@ -1027,7 +997,7 @@ func _testRarArchiveEncryption() {
 
 	Convey("Encrypted rar | Check if encrypted", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{})
 
@@ -1040,7 +1010,7 @@ func _testRarArchiveEncryption() {
 
 	Convey("Encrypted rar | wrong password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{"123"})
 
@@ -1053,7 +1023,7 @@ func _testRarArchiveEncryption() {
 
 	Convey("Encrypted rar | correct password", func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		result, err := PrepareArchive(_metaObj, []string{"1234567"})
 
@@ -1076,7 +1046,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("macOS Compressed Archive Listing - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_mac_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, true, nil, passwords)
@@ -1084,7 +1054,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing - ZIP", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1092,14 +1062,14 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing - Encrypted ZIP", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testArchiveListing(_metaObj, false, nil, []string{})
 	})
 
 	Convey("Archive Listing - tar.gz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.gz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1107,7 +1077,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | 2 - tar.gz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.gz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1115,7 +1085,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.br", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.br")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1123,7 +1093,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.bz2", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.bz2")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1131,7 +1101,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.lz4", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.lz4")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1139,7 +1109,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.sz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.sz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1147,7 +1117,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.xz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.xz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1155,7 +1125,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Tar.zst", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar.zst")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1163,7 +1133,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Non encrypted Rar", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1171,7 +1141,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Archive Listing | Encrypted Rar", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"1234567"}
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1180,7 +1150,7 @@ func TestArchiveListing(t *testing.T) {
 	Convey("Unpacking compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zst")
 
-		metaObj := &ArchiveMeta{Filename: filename}
+		metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(metaObj, true, "mock_test_file1", passwords, 9)
@@ -1188,7 +1158,7 @@ func TestArchiveListing(t *testing.T) {
 	Convey("Unpacking compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.a.txt.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1.a.txt", passwords, 9)
@@ -1196,7 +1166,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.zst")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1204,7 +1174,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.xz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1212,7 +1182,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.sz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1220,7 +1190,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.lz4")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1228,7 +1198,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.bz2")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1236,7 +1206,7 @@ func TestArchiveListing(t *testing.T) {
 
 	Convey("Unpacking compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.br")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testCompressedFileListing(_metaObj, true, "mock_test_file1", passwords, 9)
@@ -1246,7 +1216,7 @@ func TestArchiveListing(t *testing.T) {
 func TestArchiveListingPassword(t *testing.T) {
 	Convey("Wrong password | Archive Listing - ZIP | it should not throw error", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListingInvalidPasswordCommonArchivesAndZip(_metaObj, passwords)
@@ -1254,14 +1224,14 @@ func TestArchiveListingPassword(t *testing.T) {
 
 	Convey("Wrong password | Archive Listing - RAR", t, func() {
 		filename := getTestMocksAsset("mock_enc_test_file1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testArchiveListingInvalidPassword(_metaObj)
 	})
 
 	Convey("Wrong password | Archive Listing - Common Archives", t, func() {
 		filename := getTestMocksAsset("mock_test_file1.tar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"wrong"}
 		_testArchiveListingInvalidPasswordCommonArchivesAndZip(_metaObj, passwords)
@@ -1272,7 +1242,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing - zip", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testArchiveListing(_metaObj, false, nil, passwords)
@@ -1280,28 +1250,28 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing - encrypted zip", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testArchiveListing(_metaObj, false, nil, []string{})
 	})
 
 	Convey("Windows Archive Listing - encrypted best zip", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc_best.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testArchiveListing(_metaObj, false, nil, []string{})
 	})
 
 	Convey("Windows Archive Listing - encrypted legacy zip", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc_legacy.zip")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testArchiveListing(_metaObj, false, nil, []string{})
 	})
 
 	Convey("Windows Archive Listing - encrypted rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc_best.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"1234567"}
 		modTimeAssertionParentPathArr := []string{"2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023"}
@@ -1311,7 +1281,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing | file names Encrypted - Rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_enc_file_names_encrypted.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"1234567"}
 		modTimeAssertionParentPathArr := []string{"2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023"}
@@ -1321,7 +1291,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing - rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		modTimeAssertionParentPathArr := []string{"2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023"}
 
@@ -1331,7 +1301,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing solid archive - rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_solid_archive_lock.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		modTimeAssertionParentPathArr := []string{"2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023"}
 
@@ -1341,7 +1311,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing 1024mb dict best - rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_1024mb_dict_best.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		modTimeAssertionParentPathArr := []string{"2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023", "2023"}
 
@@ -1352,7 +1322,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing best enc - rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir1_best_enc.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"1234567"}
 
@@ -1363,7 +1333,7 @@ func TestWindowsArchiveListing(t *testing.T) {
 
 	Convey("Windows Archive Listing RAR4 file - rar", t, func() {
 		filename := getTestMocksAsset("windows_mocks/mock_dir_rar4.rar")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		passwords := []string{"1234567"}
 
@@ -1388,13 +1358,12 @@ func TestArchiveEncryption(t *testing.T) {
 
 func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, passwords []string) {
 	Convey("Kind | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByKind,
-			OrderDir:          OrderDirAsc,
-			Passwords:         passwords,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByKind
+		_listObj.OrderDir = OrderDirAsc
+		_listObj.Passwords = passwords
 
 		result, err := GetArchiveFileList(metaObj, _listObj)
 
@@ -1416,12 +1385,11 @@ func _testListingSymlinkCommonArchives(metaObj *ArchiveMeta, passwords []string)
 
 func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string, size int64) {
 	Convey("Kind | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByKind,
-			OrderDir:          OrderDirAsc,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByKind
+		_listObj.OrderDir = OrderDirAsc
 
 		result, err := GetArchiveFileList(metaObj, _listObj)
 
@@ -1443,12 +1411,11 @@ func _testListingCompressedFile(metaObj *ArchiveMeta, destinationFilename string
 	})
 
 	Convey("Size and mode | it should not throw an error", func() {
-		_listObj := &ArchiveRead{
-			ListDirectoryPath: "",
-			Recursive:         true,
-			OrderBy:           OrderByKind,
-			OrderDir:          OrderDirAsc,
-		}
+		_listObj := NewArchiveRead()
+		_listObj.ListDirectoryPath = ""
+		_listObj.Recursive = true
+		_listObj.OrderBy = OrderByKind
+		_listObj.OrderDir = OrderDirAsc
 
 		result, err := GetArchiveFileList(metaObj, _listObj)
 
@@ -1478,9 +1445,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | No encryption - ZIP", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		var passwords []string
 		_testListingSymlinkCommonArchives(_metaObj, passwords)
@@ -1489,9 +1454,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Encrypted - ZIP (StandardEncryption)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_stdenc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1499,9 +1462,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Encrypted - ZIP (AES128Encryption)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes128enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1509,9 +1470,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Encrypted - ZIP (AES256Encryption)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes256enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1519,9 +1478,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Encrypted - ZIP (AES192Encryption)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_aes192enc_pack.zip")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1529,9 +1486,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Encrypted - RAR", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_enc_pack.rar")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{"1234567"})
 	})
@@ -1539,9 +1494,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Non Encrypted - RAR", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_noenc_pack.rar")
 
-		_metaObj := &ArchiveMeta{
-			Filename: filename,
-		}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1549,7 +1502,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1557,7 +1510,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.gz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1565,7 +1518,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.bz2", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.bz2")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1573,7 +1526,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.br (brotli)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.br")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1581,7 +1534,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.lz4", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.lz4")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1589,7 +1542,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.sz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.sz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1597,7 +1550,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.xz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.xz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1605,7 +1558,7 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing | Tar.zst (zstd)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.tar.zst")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingSymlinkCommonArchives(_metaObj, []string{})
 	})
@@ -1613,44 +1566,44 @@ func TestSymlinkListing(t *testing.T) {
 	Convey("Listing compressed file | GZ", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.gz")
 
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Zstd", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.zst")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Xz", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.xz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | sz (Snappy)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.sz")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Lz4", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.lz4")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | Bz2", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.bz2")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 
 	Convey("Listing compressed file | BR (Brotli)", t, func() {
 		filename := getTestMocksAsset("symlink_tests/arc_test_pack.br")
-		_metaObj := &ArchiveMeta{Filename: filename}
+		_metaObj := NewArchiveMeta(filename)
 		_testListingCompressedFile(_metaObj, "arc_test_pack", 9)
 	})
 }

@@ -173,17 +173,13 @@ func _testLargeFilesUnpacking(t *testing.T, packingOutputFullFilepath string, pa
 				archiveFullpath = fp
 			}
 
-			_metaObj := &ArchiveMeta{
-				Filename:         archiveFullpath,
-				GitIgnorePattern: nil,
-			}
-			_listObj := &ArchiveRead{
-				ListDirectoryPath: "",
-				Recursive:         true,
-				OrderBy:           OrderByFullPath,
-				OrderDir:          OrderDirAsc,
-				Passwords:         testFileInfo.pwd.passwords,
-			}
+			_metaObj := NewArchiveMeta(archiveFullpath)
+			_listObj := NewArchiveRead()
+			_listObj.ListDirectoryPath = ""
+			_listObj.Recursive = true
+			_listObj.OrderBy = OrderByFullPath
+			_listObj.OrderDir = OrderDirAsc
+			_listObj.Passwords = testFileInfo.pwd.passwords
 
 			fileListResult, listerr := GetArchiveFileList(_metaObj, _listObj)
 			So(listerr, ShouldBeNil)
@@ -237,17 +233,14 @@ func _testLargeFilesUnpacking(t *testing.T, packingOutputFullFilepath string, pa
 }
 
 func _testLargeFilesStartPacking(ph *ProgressFunc, fileList []string, filename string, pwd largeFileTestsPassword, zipEncryptionMethod zip.EncryptionMethod) error {
-	metaObj := &ArchiveMeta{
-		Filename: filename,
-	}
+	metaObj := NewArchiveMeta(filename)
 	session := NewSession("", ph)
 
-	packObj := &ArchivePack{
-		FileList:                   fileList,
-		Password:                   pwd.getSinglePassword(),
-		ZipEncryptionMethod:        zipEncryptionMethod,
-		ProgressStreamDebounceTime: _ProgressStreamDebounceTime,
-	}
+	packObj := NewArchivePack()
+	packObj.FileList = fileList
+	packObj.Password = pwd.getSinglePassword()
+	packObj.ZipEncryptionMethod = zipEncryptionMethod
+	packObj.ProgressStreamDebounceTime = _ProgressStreamDebounceTime
 
 	err := StartPacking(metaObj, packObj, session)
 
@@ -258,17 +251,14 @@ func _testLargeFilesStartPacking(ph *ProgressFunc, fileList []string, filename s
 }
 
 func _testLargeFilesStartUnpacking(ph *ProgressFunc, filename string, pwd largeFileTestsPassword, paths largeFileTestsPaths, testFileInfo largeFileTests) error {
-	metaObj := &ArchiveMeta{
-		Filename: filename,
-	}
+	metaObj := NewArchiveMeta(filename)
 	session := NewSession("", ph)
 
 	destinationPath := path.Join(paths.unpackingOutputDirPath, GetMD5Hash(testFileInfo.title), testFileInfo.filename)
-	unpackObj := &ArchiveUnpack{
-		Passwords:                  pwd.passwords,
-		ProgressStreamDebounceTime: _ProgressStreamDebounceTime,
-		Destination:                destinationPath,
-	}
+	unpackObj := NewArchiveUnpack()
+	unpackObj.Passwords = pwd.passwords
+	unpackObj.ProgressStreamDebounceTime = _ProgressStreamDebounceTime
+	unpackObj.Destination = destinationPath
 
 	err := StartUnpacking(metaObj, unpackObj, session)
 

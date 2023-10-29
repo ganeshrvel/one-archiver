@@ -16,18 +16,15 @@ func ListArchive(filename string) []ArchiveFileInfo {
 		return nil
 	}
 
-	am := &ArchiveMeta{
-		Filename:         filename,
-		GitIgnorePattern: []string{},
-	}
+	am := NewArchiveMeta(filename)
+	am.GitIgnorePattern = []string{}
 
-	ar := &ArchiveRead{
-		ListDirectoryPath: "",
-		Recursive:         true,
-		OrderBy:           OrderByName,
-		OrderDir:          OrderDirAsc,
-		Passwords:         []string{"1234567"},
-	}
+	ar := NewArchiveRead()
+	ar.ListDirectoryPath = ""
+	ar.Recursive = true
+	ar.OrderBy = OrderByName
+	ar.OrderDir = OrderDirAsc
+	ar.Passwords = []string{"1234567"}
 
 	result, err := GetArchiveFileList(am, ar)
 
@@ -52,9 +49,7 @@ func TestPrepareArchive() {
 		return
 	}
 
-	am := &ArchiveMeta{
-		Filename: filename,
-	}
+	am := NewArchiveMeta(filename)
 
 	result, err := PrepareArchive(am, []string{"1234567"})
 
@@ -68,16 +63,13 @@ func TestPrepareArchive() {
 }
 
 func TestPack(filename string, fileList []string, session *Session) {
-	am := &ArchiveMeta{
-		Filename:         filename,
-		GitIgnorePattern: []string{},
-	}
+	am := NewArchiveMeta(filename)
+	am.GitIgnorePattern = []string{}
 
-	ap := &ArchivePack{
-		FileList:            fileList,
-		Password:            "",
-		ZipEncryptionMethod: zip.StandardEncryption,
-	}
+	ap := NewArchivePack()
+	ap.FileList = fileList
+	ap.Password = ""
+	ap.ZipEncryptionMethod = zip.StandardEncryption
 
 	err := StartPacking(am, ap, session)
 	if err != nil {
@@ -93,18 +85,15 @@ func TestUnpack(filename, tempDir string, session *Session) {
 	//filename := getTestMocksAsset("mock_test_file1.zip")
 	//tempDir := newTempMocksDir("arc_test_pack/", false)
 
-	am := &ArchiveMeta{
-		Filename:         filename,
-		GitIgnorePattern: []string{},
-	}
+	am := NewArchiveMeta(filename)
+	am.GitIgnorePattern = []string{}
 
 	passwords := []string{"", "demo", "1234567"}
 
-	au := &ArchiveUnpack{
-		FileList:    []string{},
-		Passwords:   passwords,
-		Destination: tempDir,
-	}
+	au := NewArchiveUnpack()
+	au.FileList = []string{}
+	au.Passwords = passwords
+	au.Destination = tempDir
 
 	err := StartUnpacking(am, au, session)
 
